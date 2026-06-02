@@ -30,7 +30,10 @@ export async function crawlWooticket(): Promise<CrawlResult | null> {
           if (tdText.includes('원') || (tdText.includes(',') && parseInt(tdText.replace(/,/g, '')) > 10000)) {
              const priceMatch = tdText.replace(/,/g, '').match(/(\d+)/);
              if (priceMatch && parseInt(priceMatch[1]) > 10000) {
-                 buyPrice = parseInt(priceMatch[1]);
+                 const currentPrice = parseInt(priceMatch[1]);
+                 if (buyPrice === 0 || currentPrice < buyPrice) {
+                     buyPrice = currentPrice;
+                 }
              }
           }
         });

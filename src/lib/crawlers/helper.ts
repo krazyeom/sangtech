@@ -73,16 +73,22 @@ export async function crawlGeneric(siteName: string, url: string, encoding = 'ut
 
         // 텍스트에서 찾기
         if (buyPrice === 0) {
+           let minPrice = Infinity;
+           let minRate = 0;
            $(el).find('td').each((_, td) => {
                const parsed = parsePriceText($(td).text());
-               // 현금 특가, 이체 특가 등 여러개 있을경우 첫번째(보통 이체)나 가장 높은가격 사용
+               // 매입가와 판매가가 둘 다 있을 경우, 상점이 사들이는 매입가(더 낮은 가격)를 선택
                if (parsed && parsed.price > 10000) {
-                   if (parsed.price > buyPrice) {
-                       buyPrice = parsed.price;
-                       buyRate = parsed.rate;
+                   if (parsed.price < minPrice) {
+                       minPrice = parsed.price;
+                       minRate = parsed.rate;
                    }
                }
            });
+           if (minPrice !== Infinity) {
+               buyPrice = minPrice;
+               buyRate = minRate;
+           }
         }
 
         if (buyPrice > 0) {
