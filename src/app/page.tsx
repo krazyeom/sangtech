@@ -74,18 +74,11 @@ export default function Home() {
 
   return (
     <div className="container">
-      <header>
-        <div className="logo">
-          <h1>DeptGift</h1>
-        </div>
-        <div className="meta-info">
-          {lastUpdate && <p>마지막 업데이트: {lastUpdate}</p>}
-          <p>크롤링 주기: 10분</p>
-          <Link href="/history" className="site-link" style={{ display: 'inline-block', marginTop: '0.5rem', fontWeight: 'bold' }}>
-            시세 변동 그래프 보기 →
-          </Link>
-        </div>
-      </header>
+      <div className="meta-info" style={{ textAlign: 'right', marginBottom: '1rem', fontSize: '0.8rem', display: 'flex', justifyContent: 'flex-end', gap: '8px', color: 'var(--text-secondary)' }}>
+        {lastUpdate && <span>마지막 업데이트: {lastUpdate}</span>}
+        {lastUpdate && <span>|</span>}
+        <span>크롤링 주기: 10분</span>
+      </div>
 
       <section className="best-cards">
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => {

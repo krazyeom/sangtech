@@ -4,6 +4,7 @@ import { crawlChoigoTicket } from './choigoticket';
 import { crawlWooticket } from './wooticket';
 import { crawlUticket } from './uticket';
 import { crawlGogoExchange } from './gogoexchange';
+import { crawlHiticket } from './hiticket';
 
 export async function crawlAll(): Promise<CrawlResult[]> {
   const results: CrawlResult[] = [];
@@ -14,7 +15,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '마이페이', fn: () => crawlGeneric('http://my-pay.co.kr/', '마이페이') },
     { name: '엑스이상품권', fn: () => crawlGeneric('http://xegift.co.kr/', '엑스이상품권') },
     { name: '풍연상품권', fn: () => crawlGeneric('http://www.py-ticket.com/', '풍연상품권') },
-    { name: '하이티켓', fn: () => crawlGeneric('http://hiticket99.com/', '하이티켓') },
+    { name: '하이티켓', fn: crawlHiticket },
     { name: '우천상품권', fn: crawlWooticket },
     { name: '의리상품권', fn: crawlUticket },
     { name: '기프터스', fn: () => crawlGeneric('https://www.gifnus.co.kr/', '기프터스', { bypassTenKCheck: true }) },

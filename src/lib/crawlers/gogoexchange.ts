@@ -1,7 +1,7 @@
 import { fetchHtml } from './helper';
-import { SitePrice } from '../types';
+import { CrawlResult } from '../types';
 
-export async function crawlGogoExchange(): Promise<SitePrice> {
+export async function crawlGogoExchange(): Promise<CrawlResult> {
   const url = 'https://www.gogoexchange.co.kr';
   const $ = await fetchHtml(url);
   const prices: import('../types').PriceInfo[] = [];

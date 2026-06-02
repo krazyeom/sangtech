@@ -13,6 +13,16 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <nav className="main-nav">
+          <div className="nav-container">
+            <a href="/" className="nav-logo">DeptGift</a>
+            <div className="nav-links">
+              <a href="/">시세 비교</a>
+              <a href="/history">시세 변동</a>
+              <a href="/calculator">계산기</a>
+            </div>
+          </div>
+        </nav>
         {children}
       </body>
     </html>

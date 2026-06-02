@@ -103,14 +103,7 @@ export default function History() {
 
   return (
     <div className="container">
-      <header>
-        <div className="logo">
-          <h1><Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>DeptGift</Link></h1>
-        </div>
-        <div className="meta-info">
-          <Link href="/" className="site-link">← 메인으로 돌아가기</Link>
-        </div>
-      </header>
+
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => (

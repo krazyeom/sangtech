@@ -41,7 +41,7 @@ export async function crawlGeneric(
     selector?: string;
     bypassTenKCheck?: boolean;
   } = {}
-): Promise<import('../types').SitePrice> {
+): Promise<import('../types').CrawlResult> {
   const prices: import('../types').PriceInfo[] = [];
 
   try {
