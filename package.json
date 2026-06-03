@@ -9,7 +9,7 @@
     "lint": "next lint",
     "crawler:start": "pm2 start ecosystem.config.js",
     "crawler:stop": "pm2 stop ecosystem.config.js",
-    "crawler:run": "tsx src/scripts/local-crawler.ts"
+    "crawler:run": "npx tsx src/scripts/local-crawler.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

@@ -13,8 +13,8 @@ export async function crawlUticket(): Promise<CrawlResult | null> {
 
     const html = response.data;
     
-    // JSON 데이터 추출
-    const match = html.match(/"giftCards":(\[.*?\])/);
+    // JSON 데이터 추출 (Next.js 서버 사이드 렌더링된 스크립트 대응)
+    const match = html.match(/\\?"giftCards\\?":(\[.*?\])/);
     if (!match) return null;
 
     let giftCards;
