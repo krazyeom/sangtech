@@ -1,0 +1,57 @@
+import { config } from 'dotenv';
+import path from 'path';
+
+// MUST happen before DB connection
+config({ path: path.resolve(process.cwd(), '.env.local') });
+
+async function main() {
+  const { crawlAll } = await import('../lib/crawlers');
+  const db = (await import('../lib/db')).default;
+
+  console.log(`[Local Crawler] Starting crawl at ${new Date().toLocaleString()}`);
+  
+  try {
+    const results = await crawlAll();
+    console.log(`[Local Crawler] Fetched data for ${results.length} sites.`);
+
+    const rowsToInsert: any[] = [];
+    for (const res of results) {
+      for (const p of res.prices) {
+        rowsToInsert.push({
+          site_name: res.siteName,
+          site_url: res.siteUrl,
+          gift_card_type: p.giftCardType,
+          denomination: p.denomination,
+          buy_price: p.buyPrice,
+          buy_rate: p.buyRate,
+          crawled_at: res.timestamp.toISOString()
+        });
+      }
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error: deleteError } = await db.from('prices').delete().gte('id', 0);
+      if (deleteError) {
+        console.error('[Local Crawler] Failed to clear old prices:', deleteError);
+        throw deleteError;
+      }
+
+      const { error: insertError } = await db.from('prices').insert(rowsToInsert);
+      if (insertError) {
+        console.error('[Local Crawler] Failed to insert new prices:', insertError);
+        throw insertError;
+      }
+      
+      console.log(`[Local Crawler] Successfully updated ${rowsToInsert.length} prices to Supabase.`);
+    } else {
+      console.log('[Local Crawler] No prices found to insert.');
+    }
+  } catch (error) {
+    console.error('[Local Crawler] Error during crawl:', error);
+  } finally {
+    console.log('[Local Crawler] Job finished.\n');
+    process.exit(0);
+  }
+}
+
+main();

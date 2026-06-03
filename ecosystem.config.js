@@ -11,5 +11,17 @@ module.exports = {
       NODE_ENV: 'production',
       PORT: 29898
     }
+  },
+  {
+    name: 'local-crawler',
+    script: 'npx',
+    args: 'tsx src/scripts/local-crawler.ts',
+    instances: 1,
+    autorestart: false,
+    watch: false,
+    cron_restart: '*/10 * * * *',
+    env: {
+      NODE_ENV: 'production'
+    }
   }]
 };

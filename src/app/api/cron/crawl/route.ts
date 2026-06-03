@@ -6,6 +6,12 @@ export const dynamic = 'force-dynamic'; // 항상 동적으로 실행되도록 (
 
 export async function GET(request: Request) {
   try {
+    // 0. 클라우드 자동 크롤링 옵션 체크 (Vercel에서 끄고 싶을 때 사용)
+    if (process.env.ENABLE_CLOUD_CRAWL !== 'true') {
+      console.log('[Cron] Cloud crawling is disabled via ENABLE_CLOUD_CRAWL.');
+      return NextResponse.json({ success: false, message: 'Cloud crawling is disabled' }, { status: 200 });
+    }
+
     // 1. 보안 체크 (Vercel Cron 또는 수동 호출 시 인증)
     // 로컬 환경이나 CRON_SECRET이 정의되지 않은 경우 통과 허용, 프로덕션에서는 필수
     const authHeader = request.headers.get('authorization');
