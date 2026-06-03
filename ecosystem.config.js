@@ -1,8 +1,8 @@
 module.exports = {
   apps: [{
     name: 'deptgift',
-    script: 'npx',
-    args: 'tsx server.ts',
+    script: 'npm',
+    args: 'run start',
     instances: 1,
     autorestart: true,
     watch: false,
