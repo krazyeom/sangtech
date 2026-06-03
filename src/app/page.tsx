@@ -168,7 +168,10 @@ export default function Home() {
       </section>
 
       <footer>
-        <p>Made By <a href="https://github.com/krazyeom" target="_blank" rel="noreferrer">krazyeom</a></p>
+        <p>
+          made by <a href="https://github.com/krazyeom" target="_blank" rel="noreferrer">krazyeom</a><br />
+          그래염 @ LTC <a href="https://cafe.naver.com/hexenyang" target="_blank" rel="noreferrer">https://cafe.naver.com/hexenyang</a>
+        </p>
       </footer>
     </div>
   );
