@@ -1,0 +1,15 @@
+name: Crawl Prices Every 10 Minutes
+
+on:
+  schedule:
+    # 10분마다 실행
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # 수동 실행 버튼 활성화
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Crawl API
+        run: |
+          curl -X GET "https://sangse-drab.vercel.app/api/cron/crawl" -v
