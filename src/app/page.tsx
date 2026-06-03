@@ -93,12 +93,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      <div className="meta-info" style={{ textAlign: 'right', marginBottom: '1rem', fontSize: '0.8rem', display: 'flex', justifyContent: 'flex-end', gap: '8px', color: 'var(--text-secondary)' }}>
-        {lastUpdate && <span>마지막 업데이트: {lastUpdate}</span>}
-        {lastUpdate && <span>|</span>}
-        <span>크롤링 주기: 10분</span>
-      </div>
-
       <section className="best-cards">
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => {
           const typePrices = prices.filter(p => p.gift_card_type === type);
@@ -183,6 +177,11 @@ export default function Home() {
       </section>
 
       <footer>
+        {lastUpdate && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+            마지막 업데이트: {lastUpdate}
+          </p>
+        )}
         <p>
           made by <a href="https://github.com/krazyeom" target="_blank" rel="noreferrer">krazyeom</a> | 그래염 @ <a href="https://cafe.naver.com/hexenyang" target="_blank" rel="noreferrer">LTC</a>
         </p>
