@@ -139,7 +139,12 @@ export default function Home() {
               return (
                 <tr key={site}>
                   <td>
-                    <a href={url} target="_blank" rel="noreferrer" className="site-link">
+                    <a 
+                      href={url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className={`site-link ${siteBestCount[site] ? `best-count-${siteBestCount[site]}` : ''}`}
+                    >
                       {site}
                     </a>
                   </td>

@@ -158,6 +158,20 @@ tbody tr:last-child td {
   color: var(--accent-blue);
 }
 
+/* 베스트 가격 개수별 샵 이름 색상 다르게 표시 */
+.site-link.best-count-1 {
+  color: #38bdf8; /* Sky 400 (조금 좋은 가격) */
+}
+.site-link.best-count-2 {
+  color: #818cf8; /* Indigo 400 (꽤 좋은 가격) */
+  font-weight: 600;
+}
+.site-link.best-count-3 {
+  color: #fbbf24; /* Amber 400 (3사 모두 최고가) */
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
 .price-cell {
   font-variant-numeric: tabular-nums;
 }
