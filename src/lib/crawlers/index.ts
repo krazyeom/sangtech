@@ -5,6 +5,7 @@ import { crawlWooticket } from './wooticket';
 import { crawlUticket } from './uticket';
 import { crawlGogoExchange } from './gogoexchange';
 import { crawlHiticket } from './hiticket';
+import { crawlKnct } from './knct';
 
 export async function crawlAll(): Promise<CrawlResult[]> {
   const results: CrawlResult[] = [];
@@ -22,8 +23,9 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '미래상품권', fn: () => crawlGeneric('https://meee.co.kr/', '미래상품권', { bypassTenKCheck: true }) },
     { name: '중앙상품권', fn: () => crawlGeneric('https://centralgift.imweb.me/', '중앙상품권') },
     { name: '회현상품권', fn: () => crawlGeneric('https://www.hhvip.co.kr/', '회현상품권') },
-    { name: '고고상품권', fn: crawlGogoExchange },
+    { name: '고고상품권', fn: () => crawlGeneric('https://www.gogoexchange.co.kr', '고고상품권', { bypassTenKCheck: true }) },
     { name: '명동상품권', fn: () => crawlGeneric('https://ticketno1.co.kr/popup/popup_6.html?idx=6&type=W&__popupPage=T', '명동상품권') },
+    { name: '도전상품권', fn: crawlKnct },
   ];
 
   for (const site of sites) {
