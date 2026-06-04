@@ -42,6 +42,44 @@ async function main() {
         throw insertError;
       }
       
+      const today = new Date().toISOString().split('T')[0];
+      const types = ['shinsegae', 'lotte', 'hyundai'];
+      for (const type of types) {
+        const { data: bestPrices } = await db.from('prices')
+          .select('*')
+          .eq('gift_card_type', type)
+          .order('buy_price', { ascending: false })
+          .limit(1);
+          
+        if (bestPrices && bestPrices.length > 0) {
+          const best = bestPrices[0];
+          const { data: existing } = await db.from('price_history')
+            .select('id')
+            .eq('date', today)
+            .eq('gift_card_type', type)
+            .limit(1);
+            
+          if (existing && existing.length > 0) {
+            await db.from('price_history')
+              .update({
+                best_buy_price: best.buy_price,
+                best_buy_rate: best.buy_rate,
+                best_site_name: best.site_name
+              })
+              .eq('id', existing[0].id);
+          } else {
+            await db.from('price_history')
+              .insert({
+                date: today,
+                gift_card_type: type,
+                best_buy_price: best.buy_price,
+                best_buy_rate: best.buy_rate,
+                best_site_name: best.site_name
+              });
+          }
+        }
+      }
+      
       console.log(`[Local Crawler] Successfully updated ${rowsToInsert.length} prices to Supabase.`);
     } else {
       console.log('[Local Crawler] No prices found to insert.');
