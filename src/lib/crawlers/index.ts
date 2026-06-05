@@ -6,6 +6,7 @@ import { crawlUticket } from './uticket';
 import { crawlGogoExchange } from './gogoexchange';
 import { crawlHiticket } from './hiticket';
 import { crawlKnct } from './knct';
+import { crawlCitypay } from './citypay';
 
 export async function crawlAll(): Promise<CrawlResult[]> {
   const results: CrawlResult[] = [];
@@ -26,6 +27,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '고고상품권', fn: () => crawlGeneric('https://www.gogoexchange.co.kr', '고고상품권', { bypassTenKCheck: true }) },
     { name: '명동상품권', fn: () => crawlGeneric('https://ticketno1.co.kr/popup/popup_6.html?idx=6&type=W&__popupPage=T', '명동상품권') },
     { name: '도전상품권', fn: crawlKnct },
+    { name: '씨티상품권', fn: crawlCitypay },
   ];
 
   for (const site of sites) {
