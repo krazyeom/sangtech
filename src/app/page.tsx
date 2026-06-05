@@ -83,6 +83,11 @@ export default function Home() {
     return a.localeCompare(b, 'ko-KR'); // 같을 경우 이름 가나다순
   });
 
+  // 크롤링에 실패해 DB에 없는 '베스트상품권'을 테이블 최하단에 수동으로 추가 (클릭 이동용)
+  if (!siteNames.includes('베스트상품권')) {
+    siteNames.push('베스트상품권');
+  }
+
   // 사이트별 데이터를 맵으로 구성
   const siteDataMap: Record<string, Record<string, PriceData>> = {};
   siteNames.forEach(site => {
@@ -140,7 +145,9 @@ export default function Home() {
           </thead>
           <tbody>
             {siteNames.map(site => {
-              const url = siteDataMap[site]['shinsegae']?.site_url || siteDataMap[site]['lotte']?.site_url || siteDataMap[site]['hyundai']?.site_url;
+              const url = site === '베스트상품권' 
+                ? 'https://bestgiftcard.kr/' 
+                : (siteDataMap[site]['shinsegae']?.site_url || siteDataMap[site]['lotte']?.site_url || siteDataMap[site]['hyundai']?.site_url);
               return (
                 <tr key={site}>
                   <td>
