@@ -9,6 +9,7 @@ export async function crawlBestgift(): Promise<CrawlResult> {
   try {
     let puppeteer;
     try {
+      // @ts-ignore: puppeteer is optionally installed for crawling environments
       puppeteer = (await import('puppeteer')).default;
     } catch (e) {
       console.warn('Puppeteer is not installed. Skipping bestgiftcard crawl.');
