@@ -60,6 +60,13 @@ export default function Home() {
     hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai').map(p => p.buy_price), 0),
   };
 
+  // 맥스솔루션을 제외한 '실질적 추천 베스트' 매입가 찾기 (맥스솔루션 단독 최고가 시 2등 업체도 하이라이트하기 위함)
+  const recommendedBestPrices = {
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
+  };
+
   // 렌더링용 사이트 목록 추출
   let siteNames = Array.from(new Set(prices.map(p => p.site_name)));
 
@@ -165,7 +172,8 @@ export default function Home() {
                   </td>
                   {(['shinsegae', 'hyundai', 'lotte'] as const).map(type => {
                     const priceData = siteDataMap[site][type];
-                    const isBest = priceData && priceData.buy_price === bestPrices[type];
+                    // 전체 최고가이거나, 맥스솔루션 제외 실질 최고가인 경우 하이라이트
+                    const isBest = priceData && (priceData.buy_price === bestPrices[type] || priceData.buy_price === recommendedBestPrices[type]);
                     
                     return (
                       <td key={type} className={isBest ? 'highlight price-cell' : 'price-cell'}>
