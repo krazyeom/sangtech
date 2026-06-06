@@ -53,11 +53,11 @@ export default function Home() {
     return <div className="container" style={{ textAlign: 'center', paddingTop: '100px' }}>Loading...</div>;
   }
 
-  // 각 상품권 종류별 가장 높은 매입가(최저 할인율) 찾기 (맥스솔루션 베스트 제외)
+  // 각 상품권 종류별 가장 높은 매입가(최저 할인율) 찾기 (테이블 하이라이트용 - 전체 포함)
   const bestPrices = {
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae').map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte').map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai').map(p => p.buy_price), 0),
   };
 
   // 렌더링용 사이트 목록 추출
