@@ -212,7 +212,7 @@ export default function Calculator() {
                   <div style={{ fontSize: '0.85rem', color: '#e53935' }}>해당 샵 시세 정보 없음</div>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.8rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.6rem' }}>
                 {DENOMINATIONS.map(denom => (
                   <div key={denom.value}>
                     <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', textAlign: 'center' }}>
