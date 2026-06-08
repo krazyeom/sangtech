@@ -19,6 +19,7 @@ export default function RootLayout({
             <div className="nav-links">
               <a href="/">시세 비교</a>
               <a href="/history">시세 변동</a>
+              <a href="/market-calculator">시세 계산기</a>
               <a href="/calculator">계산기</a>
               <a href="/automation">자동화</a>
               <a href="/notifications">알림</a>
