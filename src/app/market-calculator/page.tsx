@@ -145,11 +145,7 @@ export default function Calculator() {
 
   return (
     <div className="container" style={{ paddingBottom: '4rem' }}>
-      <header>
-        <div className="logo">
-          <h1>시세 계산기</h1>
-        </div>
-      </header>
+
       
       <div className="card" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
         <h2 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '700' }}>1. 샵 선택</h2>
