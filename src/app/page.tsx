@@ -192,7 +192,10 @@ export default function Home() {
                         {priceData ? (
                           <>
                             <span className="price-value">{priceData.buy_price.toLocaleString()}원</span>
-                            <span className="price-rate">({priceData.buy_rate}%)</span>
+                            <span className="price-rate">
+                              ({priceData.buy_rate}%)
+                              {!isBest && ` (-${(bestPrices[type] - priceData.buy_price).toLocaleString()})`}
+                            </span>
                           </>
                         ) : (
                           <span style={{ color: 'var(--text-secondary)' }}>-</span>
