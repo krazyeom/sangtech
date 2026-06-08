@@ -190,7 +190,7 @@ export default function Calculator() {
             const typeDiscount = typeFaceValue - typePayout;
 
             return (
-            <div key={type} style={{ background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.2rem' }}>
+            <div key={type}>
               <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.2rem' }}>
                 <h3 style={{ color: 'var(--primary-color)', fontSize: '1.05rem', fontWeight: '700', margin: '0 0 0.4rem 0' }}>
                   {GIFT_CARD_NAMES[type]}
