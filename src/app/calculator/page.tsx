@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import WheelPicker from '@/components/WheelPicker';
 import './calculator.css';
 
@@ -18,29 +18,58 @@ const PURCHASE_PRICE_OPTIONS = Array.from({ length: 41 }, (_, i) => {
   return { value, label: value.toLocaleString() };
 });
 
-const BUYBACK_PRICE_OPTIONS = [
-  { value: 95000, label: '95,000' },
-  { value: 95500, label: '95,500' },
-  { value: 96000, label: '96,000' },
-  { value: 96500, label: '96,500' },
-  { value: 96600, label: '96,600' },
-  { value: 96700, label: '96,700' },
-  { value: 96800, label: '96,800' },
-  { value: 96900, label: '96,900' },
-  { value: 97000, label: '97,000' },
-  { value: 97150, label: '97,150' },
-  { value: 97300, label: '97,300' },
-  { value: 97500, label: '97,500' },
-  { value: 98000, label: '98,000' },
-];
+const BUYBACK_PRICE_OPTIONS = Array.from({ length: 71 }, (_, i) => {
+  const value = 95000 + i * 50;
+  return { value, label: value.toLocaleString() };
+});
 
 const FACE_VALUE = 100000;
 
 export default function Home() {
   const [mileRate, setMileRate] = useState(1500);
-  const [purchasePrice, setPurchasePrice] = useState(99000);
+  const [purchasePrice, setPurchasePrice] = useState(98000);
   const [buybackPrice, setBuybackPrice] = useState(97150);
   const [isDoublePoint, setIsDoublePoint] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<'shinsegae' | 'hyundai' | 'lotte'>('shinsegae');
+  const [prices, setPrices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const res = await fetch('/api/prices');
+        const data = await res.json();
+        if (data.success) {
+          setPrices(data.prices);
+        }
+      } catch (err) {
+        console.error('Failed to fetch prices', err);
+      }
+    };
+    fetchPrices();
+  }, []);
+
+  const bestPrices = useMemo(() => {
+    if (prices.length === 0) return { shinsegae: 97150, lotte: 97150, hyundai: 97150 };
+    return {
+      shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 97150),
+      lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 97150),
+      hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 97150),
+    };
+  }, [prices]);
+
+  useEffect(() => {
+    if (prices.length > 0) {
+      setBuybackPrice(bestPrices[selectedCard]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prices]);
+
+  const handleCardSelect = (card: 'shinsegae' | 'hyundai' | 'lotte') => {
+    setSelectedCard(card);
+    if (prices.length > 0) {
+      setBuybackPrice(bestPrices[card]);
+    }
+  };
 
   const results = useMemo(() => {
     let accruedMiles = Math.round(purchasePrice / mileRate);
@@ -67,6 +96,22 @@ export default function Home() {
   return (
     <div className="calc-root calc-body">
     <main className="calc-main-container">
+
+      {/* Card Type Selector */}
+      <div className="calc-tab-group calc-animate-in">
+        <button 
+          onClick={() => handleCardSelect('shinsegae')}
+          className={`calc-tab-btn ${selectedCard === 'shinsegae' ? 'active' : ''}`}
+        >신세계</button>
+        <button 
+          onClick={() => handleCardSelect('hyundai')}
+          className={`calc-tab-btn ${selectedCard === 'hyundai' ? 'active' : ''}`}
+        >현대</button>
+        <button 
+          onClick={() => handleCardSelect('lotte')}
+          className={`calc-tab-btn ${selectedCard === 'lotte' ? 'active' : ''}`}
+        >롯데</button>
+      </div>
 
 
       {/* Summary Bar */}
