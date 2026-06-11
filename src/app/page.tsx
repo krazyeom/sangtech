@@ -22,6 +22,7 @@ const GIFT_CARD_NAMES = {
 export default function Home() {
   const [prices, setPrices] = useState<PriceData[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [isUpdateDelayed, setIsUpdateDelayed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +33,12 @@ export default function Home() {
         if (data.success) {
           setPrices(data.prices);
           if (data.lastCrawledAt) {
-            setLastUpdate(new Date(data.lastCrawledAt).toLocaleString('ko-KR'));
+            const crawledDate = new Date(data.lastCrawledAt);
+            setLastUpdate(crawledDate.toLocaleString('ko-KR'));
+            
+            const diffMs = Date.now() - crawledDate.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            setIsUpdateDelayed(diffMins >= 5);
           }
         }
       } catch (err) {
@@ -156,8 +162,9 @@ export default function Home() {
       </section>
 
       {lastUpdate && (
-        <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+        <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: isUpdateDelayed ? '#ef4444' : 'var(--text-secondary)' }}>
           마지막 업데이트: {lastUpdate}
+          {isUpdateDelayed && <span style={{ marginLeft: '6px', fontWeight: 'bold' }}>⚠️ 5분 이상 경과 (시세 지연)</span>}
         </div>
       )}
 
