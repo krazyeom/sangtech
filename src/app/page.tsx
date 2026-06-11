@@ -155,6 +155,12 @@ export default function Home() {
         })}
       </section>
 
+      {lastUpdate && (
+        <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          마지막 업데이트: {lastUpdate}
+        </div>
+      )}
+
       <section className="table-container">
         <table>
           <thead>
@@ -209,12 +215,6 @@ export default function Home() {
           </tbody>
         </table>
       </section>
-
-      {lastUpdate && (
-        <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          마지막 업데이트: {lastUpdate}
-        </div>
-      )}
     </div>
   );
 }
