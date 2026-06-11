@@ -142,9 +142,14 @@ export default function Home() {
           <div style={{ marginBottom: '12px' }}>
             <input
               type="number"
+              min={500}
+              max={3000}
               className="calc-manual-input"
               value={mileRate || ''}
-              onChange={(e) => setMileRate(Number(e.target.value) || 0)}
+              onChange={(e) => setMileRate(Math.min(Number(e.target.value) || 0, 3000))}
+              onBlur={() => {
+                if (mileRate < 500) setMileRate(500);
+              }}
             />
           </div>
           <WheelPicker
