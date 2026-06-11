@@ -97,8 +97,15 @@ export default function Home() {
     <div className="calc-root calc-body">
     <main className="calc-main-container">
 
+      {/* Summary Bar */}
+      <div className="calc-summary-bar calc-animate-in">
+        <span>액면가</span>
+        <span className="calc-highlight">{FACE_VALUE.toLocaleString()}원</span>
+        <span>기준</span>
+      </div>
+
       {/* Card Type Selector */}
-      <div className="calc-tab-group calc-animate-in">
+      <div className="calc-tab-group calc-animate-in" style={{ marginTop: '16px' }}>
         <button 
           onClick={() => handleCardSelect('shinsegae')}
           className={`calc-tab-btn ${selectedCard === 'shinsegae' ? 'active' : ''}`}
@@ -111,14 +118,6 @@ export default function Home() {
           onClick={() => handleCardSelect('lotte')}
           className={`calc-tab-btn ${selectedCard === 'lotte' ? 'active' : ''}`}
         >롯데</button>
-      </div>
-
-
-      {/* Summary Bar */}
-      <div className="calc-summary-bar calc-animate-in">
-        <span>액면가</span>
-        <span className="calc-highlight">{FACE_VALUE.toLocaleString()}원</span>
-        <span>기준</span>
       </div>
 
       {/* Picker Section */}

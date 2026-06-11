@@ -555,19 +555,21 @@
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
-  justify-content: center;
+  width: 100%;
 }
 
 .calc-tab-btn {
+  flex: 1;
   background: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   color: var(--text-secondary);
-  padding: 8px 24px;
-  border-radius: 20px;
+  padding: 10px 0;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
+  text-align: center;
 }
 
 .calc-tab-btn.active {
