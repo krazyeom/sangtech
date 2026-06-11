@@ -143,8 +143,8 @@ export default function Home() {
             <input
               type="number"
               className="calc-manual-input"
-              value={mileRate}
-              onChange={(e) => setMileRate(Number(e.target.value))}
+              value={mileRate || ''}
+              onChange={(e) => setMileRate(Number(e.target.value) || 0)}
             />
           </div>
           <WheelPicker
@@ -165,8 +165,8 @@ export default function Home() {
             <input
               type="number"
               className="calc-manual-input"
-              value={purchasePrice}
-              onChange={(e) => setPurchasePrice(Number(e.target.value))}
+              value={purchasePrice || ''}
+              onChange={(e) => setPurchasePrice(Number(e.target.value) || 0)}
             />
           </div>
           <WheelPicker
@@ -187,8 +187,8 @@ export default function Home() {
             <input
               type="number"
               className="calc-manual-input"
-              value={buybackPrice}
-              onChange={(e) => setBuybackPrice(Number(e.target.value))}
+              value={buybackPrice || ''}
+              onChange={(e) => setBuybackPrice(Number(e.target.value) || 0)}
             />
           </div>
           <WheelPicker
