@@ -1,4 +1,5 @@
 import './globals.css';
+import VisitorCounter from '@/components/VisitorCounter';
 
 export const metadata = {
   title: 'Sang Tech - 백화점 상품권 시세 비교',
@@ -58,6 +59,7 @@ export default function RootLayout({
           <div style={{ letterSpacing: '0.02em', fontSize: '0.85rem' }}>
             made by <a href="https://github.com/krazyeom" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>krazyeom</a> | 그래염 @ <a href="https://cafe.naver.com/hexenyang" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>LTC</a>
           </div>
+          <VisitorCounter />
         </footer>
       </body>
     </html>
