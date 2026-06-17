@@ -1,5 +1,9 @@
 import { config } from 'dotenv';
 import path from 'path';
+import ws from 'ws';
+
+// Polyfill WebSocket for Supabase in Node.js < 22 environments
+(global as any).WebSocket = ws;
 
 // MUST happen before DB connection
 config({ path: path.resolve(process.cwd(), '.env.local') });

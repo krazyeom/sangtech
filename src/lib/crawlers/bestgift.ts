@@ -23,14 +23,14 @@ export async function crawlBestgift(): Promise<CrawlResult> {
 
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors'],
     });
 
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
 
     // Wait for the elements to load (wait for any price to appear)
-    await page.waitForFunction(() => document.body.innerText.includes('100,000'));
+    await page.waitForFunction(() => document.body.innerText.includes('10만'));
 
     // Extract text from the whole page and find the prices
     const extractedData = await page.evaluate(() => {
@@ -68,7 +68,7 @@ export async function crawlBestgift(): Promise<CrawlResult> {
          // This is a naive parsing. Since we don't know the exact structure,
          // we might need to adjust.
          // Let's just try to parse any 5 digit number starting with 9 as a buy price
-         const priceMatch = text.match(/^9[0-9],[0-9]{3}$/);
+         const priceMatch = text.match(/^9[0-9],[0-9]{3}(원)?$/);
          if (priceMatch) {
             const price = parseInt(priceMatch[0].replace(/,/g, ''), 10);
             // Look ahead for rate
