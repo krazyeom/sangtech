@@ -3,8 +3,9 @@ import { supabase } from '@/lib/db';
 
 export async function GET() {
   try {
-    // 1. 오늘 방문자 수
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    // 1. 오늘 방문자 수 (한국 시간 KST 기준)
+    const kstDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const today = kstDate.toISOString().split('T')[0]; // YYYY-MM-DD
     const { data: todayData, error: todayError } = await supabase
       .from('daily_visitors')
       .select('count')
@@ -15,8 +16,10 @@ export async function GET() {
       console.error('Error fetching today visitors:', todayError);
     }
 
-    // 2. 이번 달 방문자 수
-    const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    // 2. 이번 달 방문자 수 (한국 시간 KST 기준)
+    const kstYear = kstDate.getUTCFullYear();
+    const kstMonth = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
+    const firstDayOfMonth = `${kstYear}-${kstMonth}-01`;
     const { data: monthData, error: monthError } = await supabase
       .from('daily_visitors')
       .select('count')
@@ -55,7 +58,8 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const kstDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const today = kstDate.toISOString().split('T')[0]; // YYYY-MM-DD (KST)
     
     // UPSERT 로직 대신 먼저 조회를 하고 업데이트/인서트를 처리할 수도 있지만,
     // Supabase JS 클라이언트의 upsert 기능을 활용하거나 단순 조회를 통해 처리합니다.

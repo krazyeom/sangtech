@@ -14,7 +14,8 @@ export default function VisitorCounter() {
   useEffect(() => {
     const trackAndFetchVisit = async () => {
       try {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const kstDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
+        const todayStr = kstDate.toISOString().split('T')[0];
         const lastVisitDate = localStorage.getItem('last_visit_date');
 
         // 오늘 처음 방문한 경우에만 카운트 증가
