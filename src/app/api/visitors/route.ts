@@ -16,17 +16,17 @@ export async function GET() {
       console.error('Error fetching today visitors:', todayError);
     }
 
-    // 2. 이번 달 방문자 수 (한국 시간 KST 기준)
-    const kstYear = kstDate.getUTCFullYear();
-    const kstMonth = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
-    const firstDayOfMonth = `${kstYear}-${kstMonth}-01`;
-    const { data: monthData, error: monthError } = await supabase
+    // 2. 어제 방문자 수 (한국 시간 KST 기준)
+    const yesterdayDate = new Date(kstDate.getTime() - 24 * 60 * 60 * 1000);
+    const yesterday = yesterdayDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const { data: yesterdayData, error: yesterdayError } = await supabase
       .from('daily_visitors')
       .select('count')
-      .gte('visit_date', firstDayOfMonth);
+      .eq('visit_date', yesterday)
+      .single();
 
-    if (monthError) {
-      console.error('Error fetching month visitors:', monthError);
+    if (yesterdayError && yesterdayError.code !== 'PGRST116') {
+      console.error('Error fetching yesterday visitors:', yesterdayError);
     }
     
     // 3. 전체 방문자 수
@@ -39,14 +39,14 @@ export async function GET() {
     }
 
     const todayCount = todayData?.count || 0;
-    const monthCount = monthData?.reduce((acc, curr) => acc + curr.count, 0) || 0;
+    const yesterdayCount = yesterdayData?.count || 0;
     const totalCount = totalData?.reduce((acc, curr) => acc + curr.count, 0) || 0;
 
     return NextResponse.json({
       success: true,
       stats: {
         today: todayCount,
-        month: monthCount,
+        yesterday: yesterdayCount,
         total: totalCount
       }
     });

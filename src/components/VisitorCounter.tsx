@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 interface VisitorStats {
   today: number;
-  month: number;
+  yesterday: number;
   total: number;
 }
 
@@ -61,8 +61,8 @@ export default function VisitorCounter() {
       </div>
       <div style={{ width: '1px', height: '12px', background: 'var(--border-color, #eaeaea)' }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-        <span style={{ fontWeight: 600, color: 'var(--text-primary, #333)' }}>MONTH</span>
-        <span>{stats.month.toLocaleString()}</span>
+        <span style={{ fontWeight: 600, color: 'var(--text-primary, #333)' }}>YESTERDAY</span>
+        <span>{stats.yesterday.toLocaleString()}</span>
       </div>
       <div style={{ width: '1px', height: '12px', background: 'var(--border-color, #eaeaea)' }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
