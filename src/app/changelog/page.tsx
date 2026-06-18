@@ -6,6 +6,14 @@ export const metadata = {
 export default function ChangelogPage() {
   const releases = [
     {
+      version: 'v1.2.1',
+      date: '2026. 06. 19',
+      title: '방문자 수 통계 기준 개선',
+      items: [
+        '사이트 하단 방문자 수 표기를 "이번 달"에서 "어제" 기준으로 변경 (오늘, 어제, 전체 제공)',
+      ],
+    },
+    {
       version: 'v1.2.0',
       date: '2026. 06. 11',
       title: '계산기 대규모 업데이트 및 사용성 개선',
