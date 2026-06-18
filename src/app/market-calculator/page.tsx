@@ -84,6 +84,8 @@ export default function Calculator() {
     const countA = siteBestCount[a] || 0;
     const countB = siteBestCount[b] || 0;
     if (countB !== countA) return countB - countA;
+    if (a === '하이티켓') return -1;
+    if (b === '하이티켓') return 1;
     const sumA = siteSumPrice[a] || 0;
     const sumB = siteSumPrice[b] || 0;
     if (sumB !== sumA) return sumB - sumA;

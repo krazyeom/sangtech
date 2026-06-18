@@ -45,6 +45,8 @@ export async function GET(request: Request) {
       if (b.buy_price !== a.buy_price) {
         return b.buy_price - a.buy_price;
       }
+      if (a.site_name === '하이티켓') return -1;
+      if (b.site_name === '하이티켓') return 1;
       const countA = siteBestCount[a.site_name] || 0;
       const countB = siteBestCount[b.site_name] || 0;
       return countB - countA;

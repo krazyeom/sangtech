@@ -96,20 +96,22 @@ export default function Home() {
 
   // 사이트 목록 정렬 (베스트 가격 보유 개수 내림차순 -> 3종류 총합 내림차순 -> 이름 가나다순)
   siteNames.sort((a, b) => {
+    // 1순위: 최고가 보유 개수
     const countA = siteBestCount[a] || 0;
     const countB = siteBestCount[b] || 0;
-    if (countB !== countA) {
-      return countB - countA; // 베스트 카운트가 높은 순 (3 -> 2 -> 1)
-    }
+    if (countB !== countA) return countB - countA;
     
-    // 카운트가 같을 경우 3종류 총합이 높은 순 (1위와 가격 차이가 가장 적은 순)
+    // 2순위: 동점일 경우 하이티켓 최우선
+    if (a === '하이티켓') return -1;
+    if (b === '하이티켓') return 1;
+
+    // 3순위: 전체 상품권 매입가 합계
     const sumA = siteSumPrice[a] || 0;
     const sumB = siteSumPrice[b] || 0;
-    if (sumB !== sumA) {
-      return sumB - sumA;
-    }
+    if (sumB !== sumA) return sumB - sumA;
     
-    return a.localeCompare(b, 'ko-KR'); // 총합마저 같을 경우 이름 가나다순
+    // 4순위: 이름순
+    return a.localeCompare(b, 'ko-KR');
   });
 
   // 크롤링에 실패해 DB에 없는 '베스트상품권'을 테이블 최하단에 수동으로 추가 (클릭 이동용)
@@ -136,17 +138,19 @@ export default function Home() {
           const best = typePrices.reduce((prev, curr) => {
             if (curr.buy_price > prev.buy_price) return curr;
             if (curr.buy_price === prev.buy_price) {
-              const prevCount = siteBestCount[prev.site_name] || 0;
-              const currCount = siteBestCount[curr.site_name] || 0;
-              if (currCount > prevCount) return curr;
-              if (currCount < prevCount) return prev;
-              
-              const sumPrev = siteSumPrice[prev.site_name] || 0;
-              const sumCurr = siteSumPrice[curr.site_name] || 0;
-              if (sumCurr > sumPrev) return curr;
-              if (sumCurr < sumPrev) return prev;
+              // 동점 시 하이티켓 무조건 우선
+              if (curr.site_name === '하이티켓') return curr;
+              if (prev.site_name === '하이티켓') return prev;
 
-              return curr.site_name.localeCompare(prev.site_name) < 0 ? curr : prev;
+              // tie-breaker: check global tie-breaker counts
+              const pCount = siteBestCount[prev.site_name] || 0;
+              const cCount = siteBestCount[curr.site_name] || 0;
+              if (cCount > pCount) return curr;
+              if (cCount === pCount) {
+                const pSum = siteSumPrice[prev.site_name] || 0;
+                const cSum = siteSumPrice[curr.site_name] || 0;
+                if (cSum > pSum) return curr;
+              }
             }
             return prev;
           });
