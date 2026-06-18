@@ -27,6 +27,7 @@ export async function crawlBestgift(): Promise<CrawlResult> {
     });
 
     const page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 3000 });
     await page.goto(url, { waitUntil: 'networkidle2' });
 
     // Wait for the elements to load (wait for any price to appear)
@@ -61,6 +62,8 @@ export async function crawlBestgift(): Promise<CrawlResult> {
 
       if (text.includes('100,000') || text.includes('10만')) {
         currentAmount = 100000;
+      } else if (text.includes('50만')) {
+        currentAmount = 500000;
       }
 
       // If we see a percentage like "3.2%" or price like "96,500"

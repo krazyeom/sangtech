@@ -142,6 +142,23 @@ tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* 삼성역 오프라인 특별 배경색 */
+.row-maxsolution {
+  background-color: rgba(236, 72, 153, 0.08) !important; /* 약간의 핑크/레드 톤 */
+}
+
+.row-dojeon {
+  background-color: rgba(16, 185, 129, 0.08) !important; /* 약간의 그린 톤 */
+}
+
+.row-maxsolution:hover {
+  background-color: rgba(236, 72, 153, 0.15) !important;
+}
+
+.row-dojeon:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
 tbody tr:last-child td {
   border-bottom: none;
 }

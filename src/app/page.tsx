@@ -68,9 +68,9 @@ export default function Home() {
 
   // 맥스솔루션을 제외한 '실질적 추천 베스트' 매입가 찾기 (맥스솔루션 단독 최고가 시 2등 업체도 하이라이트하기 위함)
   const recommendedBestPrices = {
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && p.site_name !== '맥스솔루션').map(p => p.buy_price), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권').map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권').map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권').map(p => p.buy_price), 0),
   };
 
   // 렌더링용 사이트 목록 추출
@@ -84,7 +84,8 @@ export default function Home() {
     // 사이트별 총합 누적 (모든 상품권 가격 합산)
     siteSumPrice[p.site_name] = (siteSumPrice[p.site_name] || 0) + p.buy_price;
 
-    if (p.site_name === '맥스솔루션') return;
+    // 맥스솔루션, 도전상품권은 전체 랭킹 카운트에서 제외
+    if (p.site_name === '맥스솔루션' || p.site_name === '도전상품권') return;
 
     const type = p.gift_card_type as keyof typeof bestPrices;
     // 전체 최고가이거나 실질적 최고가(추천)이면 카운트
@@ -129,7 +130,7 @@ export default function Home() {
     <div className="container">
       <section className="best-cards">
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => {
-          const typePrices = prices.filter(p => p.gift_card_type === type && p.site_name !== '맥스솔루션');
+          const typePrices = prices.filter(p => p.gift_card_type === type && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권');
           if (typePrices.length === 0) return null;
           
           const best = typePrices.reduce((prev, curr) => {
@@ -192,7 +193,7 @@ export default function Home() {
                 ? 'https://bestgiftcard.kr/' 
                 : (siteDataMap[site]['shinsegae']?.site_url || siteDataMap[site]['lotte']?.site_url || siteDataMap[site]['hyundai']?.site_url);
               return (
-                <tr key={site}>
+                <tr key={site} className={site === '맥스솔루션' ? 'row-maxsolution' : site === '도전상품권' ? 'row-dojeon' : ''}>
                   <td>
                     <a 
                       href={url} 
