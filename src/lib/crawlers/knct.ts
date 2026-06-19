@@ -1,5 +1,7 @@
 import Tesseract from 'tesseract.js';
 import { CrawlResult, PriceInfo } from '../types';
+import axios from 'axios';
+import sharp from 'sharp';
 
 function extractRate(line: string): number | null {
   const pctIndex = line.indexOf('%');
@@ -32,10 +34,12 @@ export async function crawlKnct(): Promise<CrawlResult> {
   const prices: PriceInfo[] = [];
 
   try {
+    const imageUrl = 'http://knct.shop/price/price.jpg';
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    const imageBuffer = Buffer.from(response.data, 'binary');
+
     const worker = await Tesseract.createWorker('kor');
     await worker.setParameters({ tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
-    
-    const imageUrl = 'http://knct.shop/price/price.jpg';
     
     const regions = [
       { type: 'hyundai', rect: { left: 252, top: 153, width: 180, height: 70 } },
@@ -44,7 +48,11 @@ export async function crawlKnct(): Promise<CrawlResult> {
     ];
 
     for (const region of regions) {
-      const { data } = await worker.recognize(imageUrl, { rectangle: region.rect });
+      const croppedBuffer = await sharp(imageBuffer)
+        .extract(region.rect)
+        .toBuffer();
+
+      const { data } = await worker.recognize(croppedBuffer);
       const rawText = data.text;
       
       const cleaned = rawText.replace(/[^\d]/g, '');
