@@ -6,15 +6,19 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || 'shinsegae';
+    const type = searchParams.get('type') || 'all';
     const days = parseInt(searchParams.get('days') || '30', 10);
 
-    const { data: history, error } = await db.from('price_history')
+    let query = db.from('price_history')
       .select('*')
-      .eq('gift_card_type', type)
       .order('date', { ascending: true })
-      .limit(days);
+      .limit(days * 3); // up to 3 types per day
 
+    if (type !== 'all') {
+      query = query.eq('gift_card_type', type);
+    }
+
+    const { data: history, error } = await query;
     if (error) throw error;
 
     return NextResponse.json({

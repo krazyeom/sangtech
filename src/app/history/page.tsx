@@ -31,7 +31,6 @@ const GIFT_CARD_NAMES = {
 };
 
 export default function History() {
-  const [activeTab, setActiveTab] = useState<'shinsegae' | 'lotte' | 'hyundai'>('shinsegae');
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +38,7 @@ export default function History() {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/history?type=${activeTab}&days=30`);
+        const res = await fetch(`/api/history?type=all&days=30`);
         const data = await res.json();
         if (data.success) {
           setHistoryData(data.history);
@@ -52,26 +51,42 @@ export default function History() {
     };
 
     fetchHistory();
-  }, [activeTab]);
+  }, []);
 
   const chartOptions = {
     responsive: true,
     plugins: {
       legend: {
         position: 'top' as const,
-        labels: { color: '#f8fafc' }
+        labels: { color: '#f8fafc' },
+        onClick: function(e: any, legendItem: any, legend: any) {
+          const index = legendItem.datasetIndex;
+          const ci = legend.chart;
+          if (ci.isDatasetVisible(index)) {
+            ci.hide(index);
+            legendItem.hidden = true;
+          } else {
+            ci.show(index);
+            legendItem.hidden = false;
+          }
+        }
       },
       title: {
         display: true,
-        text: `${GIFT_CARD_NAMES[activeTab]} 30일 시세 변동`,
+        text: `30일 시세 변동`,
         color: '#f8fafc'
       },
       tooltip: {
         callbacks: {
           label: function(context: any) {
             const dataIndex = context.dataIndex;
-            const dataItem = historyData[dataIndex];
-            return `매입가: ${context.parsed.y.toLocaleString()}원 (${dataItem.best_site_name})`;
+            const datasetIndex = context.datasetIndex;
+            const date = dates[dataIndex];
+            const type = datasetIndex === 0 ? 'shinsegae' : datasetIndex === 1 ? 'lotte' : 'hyundai';
+            const item = historyData.find(d => d.date === date && d.gift_card_type === type);
+            
+            if (!item) return `매입가 데이터 없음`;
+            return `매입가: ${context.parsed.y.toLocaleString()}원 (${item.best_site_name})`;
           }
         }
       }
@@ -88,16 +103,44 @@ export default function History() {
     }
   };
 
+  const dates = Array.from(new Set(historyData.map(d => d.date))).sort() as string[];
+
   const chartData = {
-    labels: historyData.map(d => d.date),
+    labels: dates,
     datasets: [
       {
-        label: '최고 매입가',
-        data: historyData.map(d => d.best_buy_price),
+        label: GIFT_CARD_NAMES['shinsegae'],
+        data: dates.map(date => {
+          const item = historyData.find(d => d.date === date && d.gift_card_type === 'shinsegae');
+          return item ? item.best_buy_price : null;
+        }),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+        tension: 0.3,
+        spanGaps: true,
+      },
+      {
+        label: GIFT_CARD_NAMES['lotte'],
+        data: dates.map(date => {
+          const item = historyData.find(d => d.date === date && d.gift_card_type === 'lotte');
+          return item ? item.best_buy_price : null;
+        }),
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245, 158, 11, 0.5)',
+        tension: 0.3,
+        spanGaps: true,
+      },
+      {
+        label: GIFT_CARD_NAMES['hyundai'],
+        data: dates.map(date => {
+          const item = historyData.find(d => d.date === date && d.gift_card_type === 'hyundai');
+          return item ? item.best_buy_price : null;
+        }),
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         tension: 0.3,
-      },
+        spanGaps: true,
+      }
     ],
   };
 
@@ -105,25 +148,8 @@ export default function History() {
     <div className="container">
 
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => (
-          <button
-            key={type}
-            onClick={() => setActiveTab(type)}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: activeTab === type ? 'var(--accent-blue)' : 'var(--card-bg)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all 0.2s'
-            }}
-          >
-            {GIFT_CARD_NAMES[type]}
-          </button>
-        ))}
+      <div style={{ textAlign: 'center', marginBottom: '1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+        상단의 범례(상품권 이름)를 클릭하면 그래프를 껐다 켤 수 있습니다.
       </div>
 
       <section className="card" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
