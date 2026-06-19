@@ -50,6 +50,7 @@ export async function crawlKnct(): Promise<CrawlResult> {
     for (const region of regions) {
       const croppedBuffer = await sharp(imageBuffer)
         .extract(region.rect)
+        .normalize()
         .toBuffer();
 
       const { data } = await worker.recognize(croppedBuffer);
