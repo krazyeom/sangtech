@@ -7,8 +7,8 @@ export async function GET() {
   try {
     const { data: prices, error } = await db.from('prices')
       .select('*')
-      .neq('site_name', '맥스솔루션')
-      .neq('site_name', '도전상품권');
+      .not('site_name', 'ilike', '%맥스솔루션%')
+      .not('site_name', 'ilike', '%도전상품권%');
 
     if (error) throw error;
 

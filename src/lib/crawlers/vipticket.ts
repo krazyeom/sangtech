@@ -69,7 +69,7 @@ export async function crawlVipticket(): Promise<CrawlResult> {
   }
 
   return {
-    siteName: 'VIP상품권',
+    siteName: 'VIP상품권(잠실)',
     siteUrl: 'https://vip상품권.com', // Display url
     timestamp: new Date(),
     prices

@@ -88,7 +88,7 @@ export async function crawlKnct(): Promise<CrawlResult> {
   }
 
   return {
-    siteName: '도전상품권',
+    siteName: '도전상품권(삼성)',
     siteUrl: url,
     timestamp: new Date(),
     prices

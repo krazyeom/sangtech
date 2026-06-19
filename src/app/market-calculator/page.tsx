@@ -62,9 +62,9 @@ export default function Calculator() {
   };
 
   const recommendedBestPrices = {
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권').map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권').map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && p.site_name !== '맥스솔루션' && p.site_name !== '도전상품권').map(p => p.buy_price), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권')).map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권')).map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권')).map(p => p.buy_price), 0),
   };
 
   let siteNames = Array.from(new Set(prices.map(p => p.site_name)));
@@ -73,7 +73,7 @@ export default function Calculator() {
 
   prices.forEach(p => {
     siteSumPrice[p.site_name] = (siteSumPrice[p.site_name] || 0) + p.buy_price;
-    if (p.site_name === '맥스솔루션' || p.site_name === '도전상품권') return;
+    if (p.site_name.includes('맥스솔루션') || p.site_name.includes('도전상품권')) return;
     const type = p.gift_card_type as keyof typeof bestPrices;
     if (p.buy_price === bestPrices[type] || p.buy_price === recommendedBestPrices[type]) {
       siteBestCount[p.site_name] = (siteBestCount[p.site_name] || 0) + 1;

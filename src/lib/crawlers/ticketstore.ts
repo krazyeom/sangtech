@@ -42,7 +42,7 @@ export async function crawlTicketstore(): Promise<CrawlResult> {
   }
 
   return {
-    siteName: '맥스솔루션',
+    siteName: '맥스솔루션(안양)',
     siteUrl: url,
     timestamp: new Date(),
     prices
