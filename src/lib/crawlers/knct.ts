@@ -38,9 +38,9 @@ export async function crawlKnct(): Promise<CrawlResult> {
     const imageUrl = 'http://knct.shop/price/price.jpg';
     
     const regions = [
-      { type: 'hyundai', rect: { left: 593, top: 110, width: 196, height: 72 } },
-      { type: 'shinsegae', rect: { left: 593, top: 340, width: 196, height: 72 } },
-      { type: 'lotte', rect: { left: 593, top: 458, width: 196, height: 72 } }
+      { type: 'hyundai', rect: { left: 252, top: 153, width: 180, height: 70 } },
+      { type: 'shinsegae', rect: { left: 252, top: 362, width: 180, height: 70 } },
+      { type: 'lotte', rect: { left: 252, top: 471, width: 180, height: 70 } }
     ];
 
     for (const region of regions) {
@@ -54,12 +54,19 @@ export async function crawlKnct(): Promise<CrawlResult> {
         
         if (buyPrice > 10000 && buyPrice <= 100000) {
           const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
-          prices.push({
-            giftCardType: region.type as 'hyundai' | 'shinsegae' | 'lotte',
-            denomination: 100000,
-            buyPrice,
-            buyRate
-          });
+          
+          if (buyRate <= 5) {
+            prices.push({
+              giftCardType: region.type as 'hyundai' | 'shinsegae' | 'lotte',
+              denomination: 100000,
+              buyPrice,
+              buyRate
+            });
+          } else {
+            console.warn(`[knct] Discount rate > 5% for ${region.type}. buyRate: ${buyRate}`);
+          }
+        } else {
+          console.warn(`[knct] Extracted price abnormal for ${region.type}. buyPrice: ${buyPrice}`);
         }
       } else {
         console.warn(`[knct] Failed to extract price for ${region.type}. Raw text: ${rawText}`);
