@@ -146,12 +146,6 @@ export default function History() {
 
   return (
     <div className="container">
-
-
-      <div style={{ textAlign: 'center', marginBottom: '1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
-        상단의 범례(상품권 이름)를 클릭하면 그래프를 껐다 켤 수 있습니다.
-      </div>
-
       <section className="card" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {loading ? (
           <p>데이터를 불러오는 중입니다...</p>
@@ -163,6 +157,10 @@ export default function History() {
           </div>
         )}
       </section>
+
+      <div style={{ textAlign: 'center', marginTop: '1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+        상단의 범례(상품권 이름)를 클릭하면 그래프를 껐다 켤 수 있습니다.
+      </div>
 
 
     </div>
