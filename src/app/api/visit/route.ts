@@ -46,7 +46,19 @@ export async function POST() {
       }
     }
 
-    return NextResponse.json({ success: true, date: dateStr });
+    // 전체 방문자 수 계산
+    const { data: allViews, error: sumError } = await db.from('page_views').select('view_count');
+    const totalViews = allViews?.reduce((acc, curr) => acc + (curr.view_count || 0), 0) || 0;
+    
+    // 100번째 단위 방문자인지 체크 (100, 200, 300...)
+    const isHundredth = totalViews > 0 && totalViews % 100 === 0;
+
+    return NextResponse.json({ 
+      success: true, 
+      date: dateStr, 
+      totalViews, 
+      isHundredth 
+    });
   } catch (error) {
     console.error('Visit tracking error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
