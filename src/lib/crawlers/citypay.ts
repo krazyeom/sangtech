@@ -40,13 +40,13 @@ export async function crawlCitypay(): Promise<CrawlResult> {
                     const rate = parseFloat(match[2]);
                     const kind = match[3];
                     if (price > 10000) {
-                        if (kind === '이체' || tdText.includes('이체')) {
-                            if (!foundIche || price < bestPrice) {
+                        if (kind === '이체') {
+                            if (!foundIche || price > bestPrice) {
                                 bestPrice = price;
                                 bestRate = rate;
                                 foundIche = true;
                             }
-                        } else if (!foundIche && price < bestPrice) {
+                        } else if (!foundIche && (bestPrice === Infinity || price > bestPrice)) {
                             bestPrice = price;
                             bestRate = rate;
                         }
