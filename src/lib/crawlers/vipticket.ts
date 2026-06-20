@@ -34,8 +34,8 @@ export async function crawlVipticket(): Promise<CrawlResult> {
                 const parsed = parsePriceText(tdText);
                 if (parsed && parsed.price > 10000) {
                     // Columns: 0: Name, 1: 파실때(이체), 2: 파실때(현금), 3: 사실때(이체), 4: 사실때(현금)
-                    // The user explicitly requested 사실때(이체) which is column 3
-                    if (i === 3) {
+                    // The user wants 파실때(이체) which is column 1
+                    if (i === 1) {
                         bestPrice = parsed.price;
                         bestRate = parsed.rate;
                     }
