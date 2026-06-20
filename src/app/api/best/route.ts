@@ -8,11 +8,13 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
 
-    // Fetch ALL prices to calculate global tie-breakers (exclude 맥스솔루션, 도전상품권 from best)
+    // Fetch ALL prices to calculate global tie-breakers (exclude 맥스솔루션, 도전상품권, 기프너스, VIP상품권 from best)
     const { data: allPrices, error } = await db.from('prices')
       .select('*')
       .not('site_name', 'ilike', '%맥스솔루션%')
-      .not('site_name', 'ilike', '%도전상품권%');
+      .not('site_name', 'ilike', '%도전상품권%')
+      .not('site_name', 'ilike', '%기프너스%')
+      .not('site_name', 'ilike', '%VIP상품권%');
 
     if (error) throw error;
 
