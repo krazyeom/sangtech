@@ -25,7 +25,7 @@ export default function RootLayout({
               <a href="/market-calculator">시세 계산기</a>
               <a href="/calculator">마일 계산기</a>
               <a href="/automation">자동화</a>
-              <a href="/changelog">업데이트 로그</a>
+
             </div>
           </div>
         </nav>
