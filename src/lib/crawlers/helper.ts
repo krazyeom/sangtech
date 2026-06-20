@@ -79,7 +79,7 @@ export async function crawlGeneric(
       const normalizedText = text.replace(/\s+/g, '');
       const hasTenK = normalizedText.includes('10만') || normalizedText.includes('/10/') || options.bypassTenKCheck;
       
-      if (hasTenK && !normalizedText.includes('증정') && !normalizedText.includes('제화')) {
+      if (hasTenK && !normalizedText.includes('증정') && !normalizedText.includes('제화') && !normalizedText.includes('주유') && !normalizedText.includes('오일') && !normalizedText.includes('관광')) {
         let type: import('../types').PriceInfo['giftCardType'] | null = null;
         if (normalizedText.includes('신세계')) type = 'shinsegae';
         else if (normalizedText.includes('현대')) type = 'hyundai';
@@ -111,7 +111,7 @@ export async function crawlGeneric(
              
              if (rowPrices.length > 0) {
                  const p = rowPrices[0];
-                 if (p.price > 10000) {
+                 if (p.price > 10000 && p.price <= 100000) {
                      buyPrice = p.price;
                      buyRate = p.rate;
                  }
@@ -140,7 +140,7 @@ export async function crawlGeneric(
     $('h4').each((_, el) => {
       const text = $(el).text().trim();
       const normalizedText = text.replace(/\s+/g, '');
-      if ((normalizedText.includes('10만') || normalizedText.includes('/10/')) && !normalizedText.includes('증정') && !normalizedText.includes('제화')) {
+      if ((normalizedText.includes('10만') || normalizedText.includes('/10/')) && !normalizedText.includes('증정') && !normalizedText.includes('제화') && !normalizedText.includes('주유') && !normalizedText.includes('오일') && !normalizedText.includes('관광')) {
         let type: import('../types').PriceInfo['giftCardType'] | null = null;
         if (normalizedText.includes('신세계')) type = 'shinsegae';
         else if (normalizedText.includes('현대')) type = 'hyundai';
