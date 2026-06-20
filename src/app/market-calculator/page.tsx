@@ -52,6 +52,10 @@ export default function Calculator() {
       }
     };
     fetchPrices();
+    
+    // 30초마다 갱신
+    const interval = setInterval(fetchPrices, 30 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // 정렬 로직 (page.tsx와 동일)

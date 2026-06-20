@@ -46,6 +46,10 @@ export default function Home() {
       }
     };
     fetchPrices();
+    
+    // 30초마다 갱신
+    const interval = setInterval(fetchPrices, 30 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const bestPrices = useMemo(() => {

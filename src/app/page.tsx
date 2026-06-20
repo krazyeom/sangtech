@@ -50,8 +50,8 @@ export default function Home() {
 
     fetchPrices();
     
-    // 5분마다 갱신
-    const interval = setInterval(fetchPrices, 5 * 60 * 1000);
+    // 30초마다 갱신 (자동 리프레시)
+    const interval = setInterval(fetchPrices, 30 * 1000);
     return () => clearInterval(interval);
   }, []);
 
