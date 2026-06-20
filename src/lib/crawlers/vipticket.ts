@@ -33,20 +33,11 @@ export async function crawlVipticket(): Promise<CrawlResult> {
                 const tdText = $(td).text();
                 const parsed = parsePriceText(tdText);
                 if (parsed && parsed.price > 10000) {
-                    // Columns: 0: Name, 1: Buy Cash, 2: Buy Transfer, 3: Sell Cash, 4: Sell Transfer
-                    // We only care about buy prices (col 1 and 2). Col 2 is 이체.
-                    if (i === 1 || i === 2) {
-                        const isIche = (i === 2);
-                        if (isIche) {
-                            if (!foundIche || parsed.price < bestPrice) {
-                                bestPrice = parsed.price;
-                                bestRate = parsed.rate;
-                                foundIche = true;
-                            }
-                        } else if (!foundIche && parsed.price < bestPrice) {
-                            bestPrice = parsed.price;
-                            bestRate = parsed.rate;
-                        }
+                    // Columns: 0: Name, 1: 파실때(이체), 2: 파실때(현금), 3: 사실때(이체), 4: 사실때(현금)
+                    // The user explicitly requested 사실때(이체) which is column 3
+                    if (i === 3) {
+                        bestPrice = parsed.price;
+                        bestRate = parsed.rate;
                     }
                 }
             });

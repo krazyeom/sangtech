@@ -92,54 +92,44 @@ export async function crawlGeneric(
              let bestRate = 0;
              let foundIche = false;
              
+             const rowPrices: { price: number, rate: number }[] = [];
              $(el).find('td').each((_, td) => {
                  const tdText = $(td).text();
-                 const matches = Array.from(tdText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)\s*(이체|현금)?/g));
-                 
+                 const matches = Array.from(tdText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/g));
                  if (matches.length > 0) {
                      for (const match of matches) {
-                         const price = parseInt(match[1].replace(/,/g, ''), 10);
-                         const rate = parseFloat(match[2]);
-                         const kind = match[3];
-                         
-                         if (price > 10000) {
-                             if (kind === '이체') {
-                                 if (!foundIche || price < bestPrice) {
-                                     bestPrice = price;
-                                     bestRate = rate;
-                                     foundIche = true;
-                                 }
-                             } else if (!foundIche && price < bestPrice) {
-                                 bestPrice = price;
-                                 bestRate = rate;
-                             }
-                         }
+                         rowPrices.push({
+                             price: parseInt(match[1].replace(/,/g, ''), 10),
+                             rate: parseFloat(match[2])
+                         });
                      }
                  } else {
                      const parsed = parsePriceText(tdText);
-                     if (parsed && parsed.price > 10000 && !foundIche) {
-                         if (parsed.price < bestPrice) {
-                             bestPrice = parsed.price;
-                             bestRate = parsed.rate;
-                         }
-                     }
+                     if (parsed) rowPrices.push(parsed);
                  }
              });
              
-             if (bestPrice !== Infinity) {
-                 buyPrice = bestPrice;
-                 buyRate = bestRate;
+             if (rowPrices.length > 0) {
+                 const p = rowPrices[0];
+                 if (p.price > 10000) {
+                     buyPrice = p.price;
+                     buyRate = p.rate;
+                 }
              }
           }
 
           if (buyPrice > 0) {
-             if (!prices.find(p => p.giftCardType === type)) {
+             const existing = prices.find(p => p.giftCardType === type);
+             if (!existing) {
                 prices.push({
                    giftCardType: type,
                    denomination: 100000,
                    buyPrice,
                    buyRate
                 });
+             } else if (buyPrice > existing.buyPrice) {
+                existing.buyPrice = buyPrice;
+                existing.buyRate = buyRate;
              }
           }
         }
