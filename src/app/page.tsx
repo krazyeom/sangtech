@@ -176,7 +176,7 @@ export default function Home() {
 
       {lastUpdate && (
         <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: isUpdateDelayed ? '#ef4444' : 'var(--text-secondary)' }}>
-          마지막 업데이트: {lastUpdate}
+          마지막 업데이트: {lastUpdate} (총 {siteNames.length}개 업체 지원)
           {isUpdateDelayed && <span style={{ marginLeft: '6px', fontWeight: 'bold' }}>⚠️ 5분 이상 경과 (시세 지연)</span>}
         </div>
       )}
