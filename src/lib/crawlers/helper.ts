@@ -92,29 +92,55 @@ export async function crawlGeneric(
              let bestRate = 0;
              let foundIche = false;
              
-             const rowPrices: { price: number, rate: number }[] = [];
+             let bestPriceInFirstTd = 0;
+             let bestRateInFirstTd = 0;
+             let foundPriceColumn = false;
+             
              $(el).find('td').each((_, td) => {
+                 if (foundPriceColumn) return;
+                 
                  const tdText = $(td).text();
+                 let localPrices: { price: number, rate: number }[] = [];
+                 
                  const matches = Array.from(tdText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/g));
                  if (matches.length > 0) {
                      for (const match of matches) {
-                         rowPrices.push({
+                         localPrices.push({
                              price: parseInt(match[1].replace(/,/g, ''), 10),
                              rate: parseFloat(match[2])
                          });
                      }
                  } else {
-                     const parsed = parsePriceText(tdText);
-                     if (parsed) rowPrices.push(parsed);
+                     const pctMatches = Array.from(tdText.matchAll(/([\d.]+)\s*%\s*(?:\([^)]+\))?/g));
+                     if (pctMatches.length > 0) {
+                         for (const m of pctMatches) {
+                             const rate = parseFloat(m[1]);
+                             // If a site only lists % (e.g. 3.3%), price is 100k - (100k * 3.3 / 100) = 96700
+                             const price = 100000 - (100000 * rate / 100);
+                             localPrices.push({ price, rate });
+                         }
+                     } else {
+                         const parsed = parsePriceText(tdText);
+                         if (parsed) localPrices.push(parsed);
+                     }
+                 }
+                 
+                 if (localPrices.length > 0) {
+                     foundPriceColumn = true; // Stop searching subsequent tds in this row
+                     for (const p of localPrices) {
+                         if (p.price > 10000 && p.price <= 100000) {
+                             if (p.price > bestPriceInFirstTd) {
+                                 bestPriceInFirstTd = p.price;
+                                 bestRateInFirstTd = p.rate;
+                             }
+                         }
+                     }
                  }
              });
              
-             if (rowPrices.length > 0) {
-                 const p = rowPrices[0];
-                 if (p.price > 10000 && p.price <= 100000) {
-                     buyPrice = p.price;
-                     buyRate = p.rate;
-                 }
+             if (bestPriceInFirstTd > 0) {
+                 buyPrice = bestPriceInFirstTd;
+                 buyRate = bestRateInFirstTd;
              }
           }
 

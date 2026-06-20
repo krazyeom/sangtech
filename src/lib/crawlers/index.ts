@@ -27,7 +27,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '하이티켓', fn: crawlHiticket },
     { name: '우천상품권', fn: crawlWooticket },
     { name: '의리상품권', fn: crawlUticket },
-    { name: '기프너스(잠실)', fn: () => crawlGeneric('https://www.gifnus.co.kr/', '기프너스(잠실)', { bypassTenKCheck: true }) },
+    { name: '기프너스(잠실)', fn: () => crawlGeneric('https://www.gifnus.co.kr', '기프너스(잠실)', { bypassTenKCheck: true }) },
     { name: '미래상품권', fn: () => crawlGeneric('https://meee.co.kr/', '미래상품권', { bypassTenKCheck: true }) },
     { name: '중앙상품권', fn: () => crawlGeneric('https://centralgift.imweb.me/', '중앙상품권') },
     { name: '회현상품권', fn: () => crawlGeneric('https://www.hhvip.co.kr/', '회현상품권') },
