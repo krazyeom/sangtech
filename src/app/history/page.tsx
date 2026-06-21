@@ -25,8 +25,8 @@ ChartJS.register(
 );
 
 const GIFT_CARD_NAMES = {
-  shinsegae: '신세계 상품권',
   lotte: '롯데 상품권',
+  shinsegae: '신세계 상품권',
   hyundai: '현대 상품권'
 };
 
@@ -109,17 +109,6 @@ export default function History() {
     labels: dates,
     datasets: [
       {
-        label: GIFT_CARD_NAMES['shinsegae'],
-        data: dates.map(date => {
-          const item = historyData.find(d => d.date === date && d.gift_card_type === 'shinsegae');
-          return item ? item.best_buy_price : null;
-        }),
-        borderColor: '#ef4444',
-        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-        tension: 0.3,
-        spanGaps: true,
-      },
-      {
         label: GIFT_CARD_NAMES['lotte'],
         data: dates.map(date => {
           const item = historyData.find(d => d.date === date && d.gift_card_type === 'lotte');
@@ -127,6 +116,17 @@ export default function History() {
         }),
         borderColor: '#f59e0b',
         backgroundColor: 'rgba(245, 158, 11, 0.5)',
+        tension: 0.3,
+        spanGaps: true,
+      },
+      {
+        label: GIFT_CARD_NAMES['shinsegae'],
+        data: dates.map(date => {
+          const item = historyData.find(d => d.date === date && d.gift_card_type === 'shinsegae');
+          return item ? item.best_buy_price : null;
+        }),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.5)',
         tension: 0.3,
         spanGaps: true,
       },

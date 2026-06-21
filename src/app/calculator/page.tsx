@@ -30,7 +30,7 @@ export default function Home() {
   const [purchasePrice, setPurchasePrice] = useState(98000);
   const [buybackPrice, setBuybackPrice] = useState(97150);
   const [isDoublePoint, setIsDoublePoint] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<'shinsegae' | 'hyundai' | 'lotte'>('shinsegae');
+  const [selectedCard, setSelectedCard] = useState<'lotte' | 'shinsegae' | 'hyundai'>('lotte');
   const [prices, setPrices] = useState<any[]>([]);
 
   useEffect(() => {
@@ -122,6 +122,10 @@ export default function Home() {
       {/* Card Type Selector */}
       <div className="calc-tab-group calc-animate-in">
         <button 
+          onClick={() => handleCardSelect('lotte')}
+          className={`calc-tab-btn ${selectedCard === 'lotte' ? 'active' : ''}`}
+        >롯데</button>
+        <button 
           onClick={() => handleCardSelect('shinsegae')}
           className={`calc-tab-btn ${selectedCard === 'shinsegae' ? 'active' : ''}`}
         >신세계</button>
@@ -129,10 +133,6 @@ export default function Home() {
           onClick={() => handleCardSelect('hyundai')}
           className={`calc-tab-btn ${selectedCard === 'hyundai' ? 'active' : ''}`}
         >현대</button>
-        <button 
-          onClick={() => handleCardSelect('lotte')}
-          className={`calc-tab-btn ${selectedCard === 'lotte' ? 'active' : ''}`}
-        >롯데</button>
       </div>
 
       {/* Picker Section */}

@@ -14,9 +14,9 @@ interface PriceData {
 }
 
 const GIFT_CARD_NAMES = {
+  lotte: '롯데 상품권',
   shinsegae: '신세계 상품권',
-  hyundai: '현대 상품권',
-  lotte: '롯데 상품권'
+  hyundai: '현대 상품권'
 };
 
 export default function Home() {
@@ -186,9 +186,9 @@ export default function Home() {
           <thead>
             <tr>
               <th>상품권 샵</th>
+              <th>롯데<span className="hide-mobile"> (10만원권)</span></th>
               <th>신세계<span className="hide-mobile"> (10만원권)</span></th>
               <th>현대<span className="hide-mobile"> (10만원권)</span></th>
-              <th>롯데<span className="hide-mobile"> (10만원권)</span></th>
             </tr>
           </thead>
           <tbody>
@@ -208,7 +208,7 @@ export default function Home() {
                       {site}
                     </a>
                   </td>
-                  {(['shinsegae', 'hyundai', 'lotte'] as const).map(type => {
+                  {(['lotte', 'shinsegae', 'hyundai'] as const).map(type => {
                     const priceData = siteDataMap[site][type];
                     // 전체 최고가이거나, 맥스솔루션 제외 실질 최고가인 경우 하이라이트
                     const isBest = priceData && (priceData.buy_price === bestPrices[type] || priceData.buy_price === recommendedBestPrices[type]);

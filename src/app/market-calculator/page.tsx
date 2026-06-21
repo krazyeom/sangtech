@@ -15,9 +15,9 @@ interface PriceData {
 }
 
 const GIFT_CARD_NAMES = {
+  lotte: '롯데 상품권',
   shinsegae: '신세계 상품권',
-  hyundai: '현대 상품권',
-  lotte: '롯데 상품권'
+  hyundai: '현대 상품권'
 };
 
 const DENOMINATIONS = [
