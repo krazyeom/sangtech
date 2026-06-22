@@ -219,8 +219,13 @@ export default function Home() {
                           <>
                             <span className="price-value">{priceData.buy_price.toLocaleString()}원</span>
                             <span className="price-rate">
-                              {!isBest && `(-${(bestPrices[type] - priceData.buy_price).toLocaleString()}) `}
                               ({priceData.buy_rate}%)
+                              {!isBest && (() => {
+                                const diff = priceData.buy_price - bestPrices[type];
+                                const color = diff > 0 ? '#ef4444' : '#3b82f6';
+                                const sign = diff > 0 ? '+' : '';
+                                return <span style={{ color }}>({sign}{diff.toLocaleString()})</span>;
+                              })()}
                             </span>
                           </>
                         ) : (
