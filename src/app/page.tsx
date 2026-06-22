@@ -223,8 +223,7 @@ export default function Home() {
                               {!isBest && (() => {
                                 const diff = priceData.buy_price - bestPrices[type];
                                 const color = diff > 0 ? '#ef4444' : '#3b82f6';
-                                const sign = diff > 0 ? '+' : '';
-                                return <span style={{ color }}>({sign}{diff.toLocaleString()})</span>;
+                                return <span style={{ color }}>({diff.toLocaleString()})</span>;
                               })()}
                             </span>
                           </>
