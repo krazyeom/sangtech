@@ -55,6 +55,7 @@ export default function History() {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const,
@@ -93,6 +94,7 @@ export default function History() {
     },
     scales: {
       y: {
+        min: 96000,
         ticks: { color: '#94a3b8' },
         grid: { color: 'rgba(255, 255, 255, 0.1)' }
       },
