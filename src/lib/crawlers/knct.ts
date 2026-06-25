@@ -38,8 +38,11 @@ export async function crawlKnct(): Promise<CrawlResult> {
     const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
     const imageBuffer = Buffer.from(response.data, 'binary');
 
-    const worker = await Tesseract.createWorker('kor');
-    await worker.setParameters({ tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
+    const worker = await Tesseract.createWorker('eng');
+    await worker.setParameters({
+      tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
+      tessedit_char_whitelist: '0123456789,',
+    });
     
     const regions = [
       { type: 'hyundai', rect: { left: 252, top: 153, width: 180, height: 70 } },
@@ -50,7 +53,11 @@ export async function crawlKnct(): Promise<CrawlResult> {
     for (const region of regions) {
       const croppedBuffer = await sharp(imageBuffer)
         .extract(region.rect)
+        .resize({ width: 720 })
+        .grayscale()
         .normalize()
+        .sharpen()
+        .threshold(170)
         .toBuffer();
 
       const { data } = await worker.recognize(croppedBuffer);
