@@ -5,6 +5,11 @@ import VisitTracker from '@/components/VisitTracker';
 export const metadata = {
   title: 'Sang Tech - 백화점 상품권 시세 비교',
   description: '주요 백화점 상품권 매입 시세를 한눈에 비교하세요',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({
