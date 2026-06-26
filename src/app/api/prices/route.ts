@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import db, { hasSupabaseConfig } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { data: prices, error } = await db.from('prices')
+    const client = db;
+    if (!hasSupabaseConfig || !client) {
+      return NextResponse.json({ success: true, lastCrawledAt: null, prices: [] });
+    }
+
+    const { data: prices, error } = await client.from('prices')
       .select('*')
       .order('gift_card_type', { ascending: true })
       .order('buy_price', { ascending: false });

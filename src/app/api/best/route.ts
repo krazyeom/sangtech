@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import db, { hasSupabaseConfig } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const client = db;
+    if (!hasSupabaseConfig || !client) {
+      return NextResponse.json({ success: true, best: null, allPrices: [] });
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
 
     // Fetch ALL prices to calculate global tie-breakers (exclude 맥스솔루션, 도전상품권, 기프너스, VIP상품권 from best)
-    const { data: allPrices, error } = await db.from('prices')
+    const { data: allPrices, error } = await client.from('prices')
       .select('*')
       .not('site_name', 'ilike', '%맥스솔루션%')
       .not('site_name', 'ilike', '%도전상품권%')

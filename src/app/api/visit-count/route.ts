@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import db, { hasSupabaseConfig } from '@/lib/db';
 
 export async function GET() {
   try {
-    const { data: allViews, error: sumError } = await db.from('page_views').select('view_count');
+    const client = db;
+    if (!hasSupabaseConfig || !client) {
+      return NextResponse.json({ success: true, totalViews: 0, nextTarget: 100 });
+    }
+
+    const { data: allViews, error: sumError } = await client.from('page_views').select('view_count');
     
     if (sumError) {
       console.error('Error fetching page_views:', sumError);

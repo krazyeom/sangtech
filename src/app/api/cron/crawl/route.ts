@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
 import { crawlAll } from '@/lib/crawlers';
-import db from '@/lib/db';
+import db, { hasSupabaseConfig } from '@/lib/db';
 
 export const dynamic = 'force-dynamic'; // 항상 동적으로 실행되도록 (캐시 방지)
 
 export async function GET(request: Request) {
   try {
+    const client = db;
     // 0. 클라우드 자동 크롤링 옵션 체크 (Vercel에서 끄고 싶을 때 사용)
     if (process.env.ENABLE_CLOUD_CRAWL !== 'true') {
       console.log('[Cron] Cloud crawling is disabled via ENABLE_CLOUD_CRAWL.');
       return NextResponse.json({ success: false, message: 'Cloud crawling is disabled' }, { status: 200 });
+    }
+
+    if (!hasSupabaseConfig || !client) {
+      return NextResponse.json({ success: false, message: 'Supabase not configured' }, { status: 200 });
     }
 
     // 1. 보안 체크 (Vercel Cron 또는 수동 호출 시 인증)
@@ -44,14 +49,14 @@ export async function GET(request: Request) {
 
     if (rowsToInsert.length > 0) {
       // 2. 과거 데이터 삭제 (id >= 0 조건을 주어 전체 삭제)
-      const { error: deleteError } = await db.from('prices').delete().gte('id', 0);
+      const { error: deleteError } = await client.from('prices').delete().gte('id', 0);
       if (deleteError) {
         console.error('[Cron] Failed to clear old prices:', deleteError);
         throw deleteError;
       }
 
       // 3. 최신 데이터 삽입
-      const { error: insertError } = await db.from('prices').insert(rowsToInsert);
+      const { error: insertError } = await client.from('prices').insert(rowsToInsert);
       if (insertError) {
         console.error('[Cron] Failed to insert new prices:', insertError);
         throw insertError;
@@ -64,7 +69,7 @@ export async function GET(request: Request) {
       const today = new Date(kstTime).toISOString().split('T')[0];
       const types = ['shinsegae', 'lotte', 'hyundai'];
       for (const type of types) {
-        const { data: bestPrices } = await db.from('prices')
+        const { data: bestPrices } = await client.from('prices')
           .select('*')
           .eq('gift_card_type', type)
           .order('buy_price', { ascending: false })
@@ -72,14 +77,14 @@ export async function GET(request: Request) {
           
         if (bestPrices && bestPrices.length > 0) {
           const best = bestPrices[0];
-          const { data: existing } = await db.from('price_history')
+          const { data: existing } = await client.from('price_history')
             .select('id')
             .eq('date', today)
             .eq('gift_card_type', type)
             .limit(1);
             
           if (existing && existing.length > 0) {
-            await db.from('price_history')
+            await client.from('price_history')
               .update({
                 best_buy_price: best.buy_price,
                 best_buy_rate: best.buy_rate,
@@ -87,7 +92,7 @@ export async function GET(request: Request) {
               })
               .eq('id', existing[0].id);
           } else {
-            await db.from('price_history')
+            await client.from('price_history')
               .insert({
                 date: today,
                 gift_card_type: type,

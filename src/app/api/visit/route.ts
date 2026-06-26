@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import db, { hasSupabaseConfig } from '@/lib/db';
 
 export async function POST() {
   try {
+    const client = db;
+    if (!hasSupabaseConfig || !client) {
+      return NextResponse.json({ success: true, date: null, totalViews: 0, isHundredth: false });
+    }
+
     const today = new Date();
     // KST 기준으로 오늘 날짜(YYYY-MM-DD) 구하기
     const kstOffset = 9 * 60 * 60 * 1000;
@@ -10,7 +15,7 @@ export async function POST() {
     const dateStr = kstDate.toISOString().split('T')[0];
 
     // 현재 날짜의 레코드 확인
-    const { data: existing, error: selectError } = await db
+    const { data: existing, error: selectError } = await client
       .from('page_views')
       .select('id, view_count')
       .eq('visit_date', dateStr)
@@ -24,7 +29,7 @@ export async function POST() {
 
     if (existing) {
       // 이미 있으면 카운트 증가
-      const { error: updateError } = await db
+      const { error: updateError } = await client
         .from('page_views')
         .update({ view_count: existing.view_count + 1 })
         .eq('id', existing.id);
@@ -35,7 +40,7 @@ export async function POST() {
       }
     } else {
       // 없으면 새로 추가
-      const { error: insertError } = await db
+      const { error: insertError } = await client
         .from('page_views')
         .insert([{ visit_date: dateStr, view_count: 1 }]);
 
@@ -47,7 +52,7 @@ export async function POST() {
     }
 
     // 전체 방문자 수 계산
-    const { data: allViews, error: sumError } = await db.from('page_views').select('view_count');
+    const { data: allViews, error: sumError } = await client.from('page_views').select('view_count');
     const totalViews = allViews?.reduce((acc, curr) => acc + (curr.view_count || 0), 0) || 0;
     
     // 100번째 단위 방문자인지 체크 (100, 200, 300...)

@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import db, { hasSupabaseConfig } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const client = db;
+    if (!hasSupabaseConfig || !client) {
+      return NextResponse.json({ success: true, history: [] });
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';
     const days = parseInt(searchParams.get('days') || '30', 10);
 
-    let query = db.from('price_history')
+    let query = client.from('price_history')
       .select('*')
       .order('date', { ascending: true })
       .limit(days * 3); // up to 3 types per day

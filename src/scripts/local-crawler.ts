@@ -11,12 +11,18 @@ config({ path: path.resolve(process.cwd(), '.env.local') });
 async function main() {
   const { crawlAll } = await import('../lib/crawlers');
   const db = (await import('../lib/db')).default;
+  const client = db;
 
   console.log(`[Local Crawler] Starting crawl at ${new Date().toLocaleString()}`);
   
   try {
     const results = await crawlAll();
     console.log(`[Local Crawler] Fetched data for ${results.length} sites.`);
+
+    if (!client) {
+      console.log('[Local Crawler] Supabase not configured; skipping database write.');
+      return;
+    }
 
     const rowsToInsert: any[] = [];
     for (const res of results) {
@@ -34,13 +40,13 @@ async function main() {
     }
 
     if (rowsToInsert.length > 0) {
-      const { error: deleteError } = await db.from('prices').delete().gte('id', 0);
+      const { error: deleteError } = await client.from('prices').delete().gte('id', 0);
       if (deleteError) {
         console.error('[Local Crawler] Failed to clear old prices:', deleteError);
         throw deleteError;
       }
 
-      const { error: insertError } = await db.from('prices').insert(rowsToInsert);
+      const { error: insertError } = await client.from('prices').insert(rowsToInsert);
       if (insertError) {
         console.error('[Local Crawler] Failed to insert new prices:', insertError);
         throw insertError;
@@ -52,7 +58,7 @@ async function main() {
       const today = new Date(kstTime).toISOString().split('T')[0];
       const types = ['shinsegae', 'lotte', 'hyundai'];
       for (const type of types) {
-        const { data: bestPrices } = await db.from('prices')
+        const { data: bestPrices } = await client.from('prices')
           .select('*')
           .eq('gift_card_type', type)
           .order('buy_price', { ascending: false })
@@ -60,14 +66,14 @@ async function main() {
           
         if (bestPrices && bestPrices.length > 0) {
           const best = bestPrices[0];
-          const { data: existing } = await db.from('price_history')
+          const { data: existing } = await client.from('price_history')
             .select('id')
             .eq('date', today)
             .eq('gift_card_type', type)
             .limit(1);
             
           if (existing && existing.length > 0) {
-            await db.from('price_history')
+            await client.from('price_history')
               .update({
                 best_buy_price: best.buy_price,
                 best_buy_rate: best.buy_rate,
@@ -75,7 +81,7 @@ async function main() {
               })
               .eq('id', existing[0].id);
           } else {
-            await db.from('price_history')
+            await client.from('price_history')
               .insert({
                 date: today,
                 gift_card_type: type,
