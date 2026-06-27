@@ -29,7 +29,6 @@ export default function RootLayout({
               <a href="/history">시세 변동</a>
               <a href="/market-calculator">시세 계산기</a>
               <a href="/calculator">마일 계산기</a>
-              <a href="/automation">자동화</a>
 
             </div>
           </div>
