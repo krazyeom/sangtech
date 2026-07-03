@@ -19,6 +19,11 @@ const GIFT_CARD_NAMES = {
   hyundai: '현대 상품권'
 };
 
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권'];
+
+const isExcludedCompareSite = (siteName: string) =>
+  EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
+
 export default function Home() {
   const [prices, setPrices] = useState<PriceData[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -59,18 +64,11 @@ export default function Home() {
     return <div className="container" style={{ textAlign: 'center', paddingTop: '100px' }}>Loading...</div>;
   }
 
-  // 각 상품권 종류별 가장 높은 매입가(최저 할인율) 찾기 (테이블 하이라이트용 - 전체 포함)
+  // 각 상품권 종류별 가장 높은 매입가(비교 제외 업체는 제외)
   const bestPrices = {
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae').map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte').map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai').map(p => p.buy_price), 0),
-  };
-
-  // 맥스솔루션을 제외한 '실질적 추천 베스트' 매입가 찾기 (맥스솔루션 단독 최고가 시 2등 업체도 하이라이트하기 위함)
-  const recommendedBestPrices = {
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권')).map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권')).map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권')).map(p => p.buy_price), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
   };
 
   // 렌더링용 사이트 목록 추출
@@ -78,24 +76,26 @@ export default function Home() {
 
   // 각 사이트별로 전체 상품권 중 베스트 가격을 몇 개나 가지고 있는지 카운트, 그리고 3종류 총합 계산
   const siteBestCount: Record<string, number> = {};
-  const siteSumPrice: Record<string, number> = {};
+  const siteComparableSumPrice: Record<string, number> = {};
 
   prices.forEach(p => {
-    // 사이트별 총합 누적 (모든 상품권 가격 합산)
-    siteSumPrice[p.site_name] = (siteSumPrice[p.site_name] || 0) + p.buy_price;
+    if (isExcludedCompareSite(p.site_name)) return;
 
-    // 맥스솔루션, 도전상품권, 기프너스, VIP상품권은 전체 랭킹 카운트에서 제외
-    if (p.site_name.includes('맥스솔루션') || p.site_name.includes('도전상품권') || p.site_name.includes('기프너스') || p.site_name.includes('VIP상품권')) return;
+    // 비교 대상 업체만 총합과 베스트 카운트에 포함
+    siteComparableSumPrice[p.site_name] = (siteComparableSumPrice[p.site_name] || 0) + p.buy_price;
 
     const type = p.gift_card_type as keyof typeof bestPrices;
-    // 전체 최고가이거나 실질적 최고가(추천)이면 카운트
-    if (p.buy_price === bestPrices[type] || p.buy_price === recommendedBestPrices[type]) {
+    if (p.buy_price === bestPrices[type]) {
       siteBestCount[p.site_name] = (siteBestCount[p.site_name] || 0) + 1;
     }
   });
 
-  // 사이트 목록 정렬 (베스트 가격 보유 개수 내림차순 -> 3종류 총합 내림차순 -> 이름 가나다순)
+  // 사이트 목록 정렬 (비교 대상 우선 -> 베스트 가격 보유 개수 -> 3종류 총합 -> 이름 가나다순)
   siteNames.sort((a, b) => {
+    const isExcludedA = isExcludedCompareSite(a);
+    const isExcludedB = isExcludedCompareSite(b);
+    if (isExcludedA !== isExcludedB) return isExcludedA ? 1 : -1;
+
     // 1순위: 최고가 보유 개수
     const countA = siteBestCount[a] || 0;
     const countB = siteBestCount[b] || 0;
@@ -106,8 +106,8 @@ export default function Home() {
     if (b === '하이티켓') return 1;
 
     // 3순위: 전체 상품권 매입가 합계
-    const sumA = siteSumPrice[a] || 0;
-    const sumB = siteSumPrice[b] || 0;
+    const sumA = siteComparableSumPrice[a] || 0;
+    const sumB = siteComparableSumPrice[b] || 0;
     if (sumB !== sumA) return sumB - sumA;
     
     // 4순위: 이름순
@@ -132,7 +132,7 @@ export default function Home() {
     <div className="container">
       <section className="best-cards">
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => {
-          const typePrices = prices.filter(p => p.gift_card_type === type && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권'));
+          const typePrices = prices.filter(p => p.gift_card_type === type && !isExcludedCompareSite(p.site_name));
           if (typePrices.length === 0) return null;
           
           const best = typePrices.reduce((prev, curr) => {
@@ -147,8 +147,8 @@ export default function Home() {
               const cCount = siteBestCount[curr.site_name] || 0;
               if (cCount > pCount) return curr;
               if (cCount === pCount) {
-                const pSum = siteSumPrice[prev.site_name] || 0;
-                const cSum = siteSumPrice[curr.site_name] || 0;
+                const pSum = siteComparableSumPrice[prev.site_name] || 0;
+                const cSum = siteComparableSumPrice[curr.site_name] || 0;
                 if (cSum > pSum) return curr;
               }
             }
@@ -210,8 +210,7 @@ export default function Home() {
                   </td>
                   {(['lotte', 'shinsegae', 'hyundai'] as const).map(type => {
                     const priceData = siteDataMap[site][type];
-                    // 전체 최고가이거나, 맥스솔루션 제외 실질 최고가인 경우 하이라이트
-                    const isBest = priceData && (priceData.buy_price === bestPrices[type] || priceData.buy_price === recommendedBestPrices[type]);
+                    const isBest = priceData && priceData.buy_price === bestPrices[type];
                     
                     return (
                       <td key={type} className={isBest ? 'highlight price-cell' : 'price-cell'}>

@@ -25,6 +25,11 @@ const BUYBACK_PRICE_OPTIONS = Array.from({ length: 401 }, (_, i) => {
 
 const FACE_VALUE = 100000;
 
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권'];
+
+const isExcludedCompareSite = (siteName: string) =>
+  EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
+
 export default function Home() {
   const [mileRate, setMileRate] = useState(1500);
   const [purchasePrice, setPurchasePrice] = useState(98000);
@@ -56,7 +61,7 @@ export default function Home() {
     if (prices.length === 0) return { shinsegae: 97150, lotte: 97150, hyundai: 97150 };
     
     const getBest = (type: string) => {
-      const filtered = prices.filter(p => p.gift_card_type === type && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('도전상품권') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권'));
+      const filtered = prices.filter(p => p.gift_card_type === type && !isExcludedCompareSite(p.site_name));
       if (filtered.length === 0) return 97150;
       return Math.max(...filtered.map(p => p.buy_price));
     };
