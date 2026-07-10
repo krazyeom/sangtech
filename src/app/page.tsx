@@ -178,6 +178,9 @@ export default function Home() {
         <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: isUpdateDelayed ? '#ef4444' : 'var(--text-secondary)' }}>
           마지막 업데이트: {lastUpdate} (총 {siteNames.length}개 업체 지원)
           {isUpdateDelayed && <span style={{ marginLeft: '6px', fontWeight: 'bold' }}>⚠️ 5분 이상 경과 (시세 지연)</span>}
+          <div style={{ marginTop: '0.35rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.5 }}>
+            주의: 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 sangtech에게는 책임이 없습니다.
+          </div>
         </div>
       )}
 
