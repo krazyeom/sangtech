@@ -8,6 +8,7 @@ import { crawlHiticket } from './hiticket';
 import { crawlKnct } from './knct';
 import { crawlCitypay } from './citypay';
 import { crawlVipticket } from './vipticket';
+import { crawlPyTicket } from './pyticket';
 
 import { crawlDream } from './dream';
 import { crawlWoorigift } from './woorigift';
@@ -23,7 +24,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '명인상품권', fn: () => crawlGeneric('http://mingren.co.kr/', '명인상품권') },
     { name: '마이페이', fn: () => crawlGeneric('http://my-pay.co.kr/', '마이페이') },
     { name: '엑스이상품권', fn: () => crawlGeneric('http://xegift.co.kr/', '엑스이상품권') },
-    { name: '풍연상품권', fn: () => crawlGeneric('http://www.py-ticket.com/', '풍연상품권') },
+    { name: '풍연상품권', fn: crawlPyTicket },
     { name: '하이티켓', fn: crawlHiticket },
     { name: '우천상품권', fn: crawlWooticket },
     { name: '의리상품권', fn: crawlUticket },
