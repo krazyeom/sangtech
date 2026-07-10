@@ -8,10 +8,13 @@ type PriceCandidate = {
   isTransfer: boolean;
 };
 
+const INVALID_PRICES = new Set([98000]);
 const TRANSFER_HINTS = ['이체', '송금', '계좌이체', 'remittance', 'transfer'];
 
 const isTransferText = (text: string) =>
   TRANSFER_HINTS.some((hint) => text.toLowerCase().includes(hint.toLowerCase()));
+
+export const isInvalidPrice = (price: number) => INVALID_PRICES.has(price);
 
 export const extractPriceCandidates = (text: string): PriceCandidate[] => {
   const candidates: PriceCandidate[] = [];
@@ -19,8 +22,11 @@ export const extractPriceCandidates = (text: string): PriceCandidate[] => {
 
   let match: RegExpExecArray | null;
   while ((match = regex.exec(text)) !== null) {
+    const price = parseInt(match[1].replace(/,/g, ''), 10);
+    if (isInvalidPrice(price)) continue;
+
     candidates.push({
-      price: parseInt(match[1].replace(/,/g, ''), 10),
+      price,
       rate: parseFloat(match[2]),
       isTransfer: !!match[3] && isTransferText(match[3]),
     });
@@ -28,7 +34,7 @@ export const extractPriceCandidates = (text: string): PriceCandidate[] => {
 
   if (candidates.length === 0) {
     const parsed = parsePriceText(text);
-    if (parsed) {
+    if (parsed && !isInvalidPrice(parsed.price)) {
       candidates.push({
         price: parsed.price,
         rate: parsed.rate,
@@ -115,8 +121,11 @@ export async function crawlGeneric(
         const amt1 = input.attr('_amt1');
         const itemAttr = input.attr('_item') || '';
         if (amt1 && !itemAttr.includes('증정') && !itemAttr.includes('제화')) {
-          buyPrice = parseInt(amt1);
-          buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
+          const parsed = parseInt(amt1);
+          if (!isInvalidPrice(parsed)) {
+            buyPrice = parsed;
+            buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
+          }
         }
       }
 
@@ -224,7 +233,7 @@ export async function crawlGeneric(
               const parsedRate = rateAttr ? parseFloat(rateAttr) : 0;
               const isIche = methodAttr === 'remittance' || methodAttr === 'transfer' || liText.includes('이체');
 
-              if (parsedPrice > 10000) {
+              if (parsedPrice > 10000 && !isInvalidPrice(parsedPrice)) {
                 if (isIche) {
                   if (!foundRemittance || parsedPrice > bestPrice) {
                     bestPrice = parsedPrice;
