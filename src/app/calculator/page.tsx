@@ -13,8 +13,8 @@ const MILE_RATE_OPTIONS = [
   { value: 3000, label: '3,000' },
 ];
 
-const PURCHASE_PRICE_OPTIONS = Array.from({ length: 41 }, (_, i) => {
-  const value = 96000 + i * 100;
+const PURCHASE_PRICE_OPTIONS = Array.from({ length: 401 }, (_, i) => {
+  const value = 96000 + i * 10;
   return { value, label: value.toLocaleString() };
 });
 
@@ -177,11 +177,12 @@ export default function Home() {
           </div>
           <div style={{ marginBottom: '12px' }}>
             <input
-              type="number"
-              max={100000}
-              className="calc-manual-input"
-              value={purchasePrice || ''}
-              onChange={(e) => setPurchasePrice(Math.min(Number(e.target.value) || 0, 100000))}
+            type="number"
+            step={10}
+            max={100000}
+            className="calc-manual-input"
+            value={purchasePrice || ''}
+            onChange={(e) => setPurchasePrice(Math.min(Number(e.target.value) || 0, 100000))}
             />
           </div>
           <WheelPicker
