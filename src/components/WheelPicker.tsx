@@ -15,7 +15,9 @@ const ITEM_HEIGHT = 44;
 export default function WheelPicker({ items, selectedValue, onChange, unit, visibleItems = 5 }: WheelPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrollingRef = useRef(false);
+  const programmaticScrollRef = useRef(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const programmaticScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeIndex, setActiveIndex] = useState(() => {
     let idx = items.findIndex(item => item.value === selectedValue);
     if (idx === -1 && items.length > 0) {
@@ -30,6 +32,28 @@ export default function WheelPicker({ items, selectedValue, onChange, unit, visi
     }
     return Math.max(0, idx);
   });
+
+  const markProgrammaticScroll = useCallback(() => {
+    programmaticScrollRef.current = true;
+    if (programmaticScrollTimeoutRef.current) {
+      clearTimeout(programmaticScrollTimeoutRef.current);
+    }
+    programmaticScrollTimeoutRef.current = setTimeout(() => {
+      programmaticScrollRef.current = false;
+    }, 180);
+  }, []);
+
+  const scrollToIndex = useCallback((index: number, smooth: boolean = true) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const spacerHeight = (visibleItems - 1) / 2 * ITEM_HEIGHT;
+    const targetTop = index * ITEM_HEIGHT + spacerHeight - (el.clientHeight / 2 - ITEM_HEIGHT / 2);
+    markProgrammaticScroll();
+    el.scrollTo({
+      top: targetTop,
+      behavior: smooth ? 'smooth' : 'instant',
+    });
+  }, [markProgrammaticScroll, visibleItems]);
 
   // Sync active index when selectedValue changes externally
   useEffect(() => {
@@ -50,17 +74,6 @@ export default function WheelPicker({ items, selectedValue, onChange, unit, visi
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedValue, items]);
-
-  const scrollToIndex = useCallback((index: number, smooth: boolean = true) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const spacerHeight = (visibleItems - 1) / 2 * ITEM_HEIGHT;
-    const targetTop = index * ITEM_HEIGHT + spacerHeight - (el.clientHeight / 2 - ITEM_HEIGHT / 2);
-    el.scrollTo({
-      top: targetTop,
-      behavior: smooth ? 'smooth' : 'instant',
-    });
-  }, []);
 
   // Initial scroll position
   useEffect(() => {
@@ -85,6 +98,8 @@ export default function WheelPicker({ items, selectedValue, onChange, unit, visi
   }, []);
 
   const handleScroll = useCallback(() => {
+    if (programmaticScrollRef.current) return;
+
     const el = scrollRef.current;
     if (!el) return;
 
@@ -107,13 +122,20 @@ export default function WheelPicker({ items, selectedValue, onChange, unit, visi
         onChange(items[clampedIndex].value);
       }
     }, 100);
-  }, [items, selectedValue, onChange, scrollToIndex]);
+  }, [items, selectedValue, onChange, scrollToIndex, visibleItems]);
 
   const handleItemClick = useCallback((index: number) => {
     setActiveIndex(index);
     scrollToIndex(index, true);
     onChange(items[index].value);
   }, [items, onChange, scrollToIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (programmaticScrollTimeoutRef.current) clearTimeout(programmaticScrollTimeoutRef.current);
+    };
+  }, []);
 
   // Compute item styles for 3D effect
   const getItemStyle = (index: number): React.CSSProperties => {
