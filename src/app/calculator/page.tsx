@@ -185,9 +185,6 @@ export default function Home() {
             onChange={(e) => setPurchasePrice(Math.min(Number(e.target.value) || 0, 100000))}
             />
           </div>
-          <div style={{ marginBottom: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            휠은 100원 단위, 직접 입력은 10원 단위로 사용할 수 있습니다.
-          </div>
           <WheelPicker
             items={PURCHASE_PRICE_OPTIONS}
             selectedValue={purchasePrice}
