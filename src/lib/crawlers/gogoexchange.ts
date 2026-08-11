@@ -2,10 +2,15 @@ import { fetchHtml, extractPriceCandidates, pickPreferredCandidate } from './hel
 import { CrawlResult, PriceInfo } from '../types';
 
 const TARGET_SITES = [
-  { label: '롯데 백화점 상품권', type: 'lotte' as const },
-  { label: '신세계 백화점 상품권', type: 'shinsegae' as const },
-  { label: '현대 백화점 상품권', type: 'hyundai' as const },
+  { label: '롯데', type: 'lotte' as const },
+  { label: '신세계', type: 'shinsegae' as const },
+  { label: '현대', type: 'hyundai' as const },
 ];
+
+const isTargetRow = (rowText: string, label: string) => {
+  const normalized = rowText.replace(/\s+/g, '');
+  return normalized.includes(label) && /10\s*만원/.test(rowText);
+};
 
 export async function crawlGogoExchange(): Promise<CrawlResult> {
   const url = 'https://www.gogoexchange.co.kr';
@@ -14,11 +19,12 @@ export async function crawlGogoExchange(): Promise<CrawlResult> {
 
   if ($) {
     $('tr').each((_, el) => {
-      const rowText = $(el).text().replace(/\s+/g, '');
-      const target = TARGET_SITES.find(({ label }) => rowText.includes(label.replace(/\s+/g, '')));
+      const rowText = $(el).text();
+      const normalizedRowText = rowText.replace(/\s+/g, '');
+      const target = TARGET_SITES.find(({ label }) => isTargetRow(normalizedRowText, label));
 
       if (!target) return;
-      if (rowText.includes('증정') || rowText.includes('제화')) return;
+      if (normalizedRowText.includes('주유') || normalizedRowText.includes('제화')) return;
 
       const priceCell = $(el).find('td').eq(1);
       if (!priceCell.length) return;
@@ -30,14 +36,21 @@ export async function crawlGogoExchange(): Promise<CrawlResult> {
       );
 
       if (!preferred) return;
-      if (prices.find((p) => p.giftCardType === target.type)) return;
 
-      prices.push({
-        giftCardType: target.type,
-        denomination: 100000,
-        buyPrice: preferred.price,
-        buyRate: preferred.rate,
-      });
+      const existing = prices.find((p) => p.giftCardType === target.type);
+      if (!existing || preferred.price > existing.buyPrice) {
+        if (!existing) {
+          prices.push({
+            giftCardType: target.type,
+            denomination: 100000,
+            buyPrice: preferred.price,
+            buyRate: preferred.rate,
+          });
+        } else {
+          existing.buyPrice = preferred.price;
+          existing.buyRate = preferred.rate;
+        }
+      }
     });
   }
 
