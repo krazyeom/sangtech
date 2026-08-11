@@ -1,32 +1,71 @@
-import { fetchHtml } from './helper';
+import { extractPriceCandidates, pickPreferredCandidate } from './helper';
 import { CrawlResult, PriceInfo } from '../types';
 
-const CURRENT_PRICES: Record<'lotte' | 'shinsegae' | 'hyundai', number> = {
-  lotte: 95560,
-  shinsegae: 96670,
-  hyundai: 96660,
-};
-
-const SITE_ORDER: Array<{ type: 'lotte' | 'shinsegae' | 'hyundai'; label: string }> = [
-  { type: 'lotte', label: '롯데' },
-  { type: 'shinsegae', label: '신세계' },
-  { type: 'hyundai', label: '현대' },
+const SITE_ORDER: Array<{ type: 'lotte' | 'shinsegae' | 'hyundai'; tabClass: string }> = [
+  { type: 'lotte', tabClass: 'tabs1' },
+  { type: 'shinsegae', tabClass: 'tabs2' },
+  { type: 'hyundai', tabClass: 'tabs3' },
 ];
+
+const MIN_PRICE = 10000;
+const MAX_PRICE = 1000000;
+
+function parseRowText(rowText: string) {
+  const candidates = extractPriceCandidates(rowText).filter(
+    (candidate) => candidate.price > MIN_PRICE && candidate.price <= MAX_PRICE
+  );
+  return pickPreferredCandidate(candidates);
+}
+
+async function loadRenderedRows(url: string): Promise<string[] | null> {
+  try {
+    const puppeteerMod = await import('puppeteer');
+    const puppeteer = (puppeteerMod as any).default ?? puppeteerMod;
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox'],
+    });
+    try {
+      const page = await browser.newPage();
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+      const rows = await page.evaluate(() =>
+        [...document.querySelectorAll('div.tab-editor.tabs1, div.tab-editor.tabs2, div.tab-editor.tabs3')].map(
+          (el) => {
+            const dataRows = [...el.querySelectorAll('tr')].filter((tr) => tr.querySelectorAll('td').length >= 2);
+            const firstDataRow = dataRows[1] || dataRows[0] || null;
+            const secondCell = firstDataRow?.querySelectorAll('td')[1] || null;
+            return (secondCell?.textContent || '').replace(/\s+/g, ' ').trim();
+          }
+        )
+      );
+      await browser.close();
+      return rows;
+    } catch (error) {
+      await browser.close();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error loading rendered Gogo page:', error);
+    return null;
+  }
+}
 
 export async function crawlGogoExchange(): Promise<CrawlResult> {
   const url = 'https://www.gogoexchange.co.kr';
-  const $ = await fetchHtml(url);
+  const rowTexts = await loadRenderedRows(url);
   const prices: PriceInfo[] = [];
 
-  if ($) {
-    for (const site of SITE_ORDER) {
-      const buyPrice = CURRENT_PRICES[site.type];
-      const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
+  if (rowTexts && rowTexts.length >= SITE_ORDER.length) {
+    for (let i = 0; i < SITE_ORDER.length; i += 1) {
+      const site = SITE_ORDER[i];
+      const preferred = parseRowText(rowTexts[i] || '');
+      if (!preferred) continue;
+
       prices.push({
         giftCardType: site.type,
         denomination: 100000,
-        buyPrice,
-        buyRate,
+        buyPrice: preferred.price,
+        buyRate: preferred.rate,
       });
     }
   }
@@ -38,3 +77,5 @@ export async function crawlGogoExchange(): Promise<CrawlResult> {
     prices,
   };
 }
+
+export default { crawlGogoExchange };
