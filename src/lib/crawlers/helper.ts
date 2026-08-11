@@ -111,6 +111,8 @@ export async function crawlGeneric(
 
     $(selector).each((_, el) => {
       const text = $(el).text().trim();
+      const isMobileSection = $(el).closest('.mblist, #tbl_mobile').length > 0 || /모바일/.test(text);
+      if (isMobileSection) return;
       const input = $(el).find('input');
 
       let buyPrice = 0;
@@ -199,6 +201,8 @@ export async function crawlGeneric(
     // h4와 ul.ul-sell 패턴 추가 매칭 (마이페이의 현대상품권 등 tr 테이블에서 누락된 항목 보완)
     $('h4').each((_, el) => {
       const text = $(el).text().trim();
+      const isMobileSection = $(el).closest('.mblist, #tbl_mobile').length > 0 || /모바일/.test(text);
+      if (isMobileSection) return;
       const normalizedText = text.replace(/\s+/g, '');
       if (
         (normalizedText.includes('10만') || normalizedText.includes('/10/')) &&
