@@ -4,7 +4,7 @@ import { CrawlResult, PriceInfo } from '../types';
 const CURRENT_PRICES: Record<'lotte' | 'shinsegae' | 'hyundai', number> = {
   lotte: 95560,
   shinsegae: 96670,
-  hyundai: 96650,
+  hyundai: 96660,
 };
 
 const SITE_ORDER: Array<{ type: 'lotte' | 'shinsegae' | 'hyundai'; label: string }> = [
