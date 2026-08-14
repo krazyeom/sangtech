@@ -45,48 +45,57 @@ export async function crawlKnct(): Promise<CrawlResult> {
     });
     
     const regions = [
-      { type: 'hyundai', rect: { left: 252, top: 153, width: 180, height: 70 } },
-      { type: 'shinsegae', rect: { left: 252, top: 362, width: 180, height: 70 } },
-      { type: 'lotte', rect: { left: 252, top: 471, width: 180, height: 70 } }
+      {
+        type: 'hyundai',
+        buyRect: { left: 252, top: 153, width: 260, height: 72 },
+        sellRect: { left: 820, top: 153, width: 260, height: 72 },
+      },
+      {
+        type: 'shinsegae',
+        buyRect: { left: 252, top: 362, width: 260, height: 72 },
+        sellRect: { left: 820, top: 362, width: 260, height: 72 },
+      },
+      {
+        type: 'lotte',
+        buyRect: { left: 252, top: 471, width: 260, height: 72 },
+        sellRect: { left: 820, top: 471, width: 260, height: 72 },
+      }
     ];
 
-    for (const region of regions) {
+    const ocrPrice = async (rect: { left: number; top: number; width: number; height: number }) => {
       const croppedBuffer = await sharp(imageBuffer)
-        .extract(region.rect)
-        .resize({ width: 720 })
+        .extract(rect)
+        .resize({ width: 900 })
         .grayscale()
         .normalize()
         .sharpen()
         .threshold(170)
         .toBuffer();
-
       const { data } = await worker.recognize(croppedBuffer);
       const rawText = data.text;
-      
       const cleaned = rawText.replace(/[^\d]/g, '');
-      if (cleaned.length >= 5) {
-        // Extract the first 5 digits representing the price (e.g. 96600)
-        const buyPrice = parseInt(cleaned.substring(0, 5), 10);
-        
-        if (buyPrice > 10000 && buyPrice <= 100000) {
-          const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
-          
-          if (buyRate <= 5) {
-            prices.push({
-              giftCardType: region.type as 'hyundai' | 'shinsegae' | 'lotte',
-              denomination: 100000,
-              buyPrice,
-              buyRate
-            });
-          } else {
-            console.warn(`[knct] Discount rate > 5% for ${region.type}. buyRate: ${buyRate}`);
-          }
-        } else {
-          console.warn(`[knct] Extracted price abnormal for ${region.type}. buyPrice: ${buyPrice}`);
-        }
-      } else {
-        console.warn(`[knct] Failed to extract price for ${region.type}. Raw text: ${rawText}`);
+      if (cleaned.length < 5) return null;
+      const price = parseInt(cleaned.substring(0, 5), 10);
+      if (price <= 10000 || price > 100000) return null;
+      const rate = Math.round(((100000 - price) / 100000) * 100 * 100) / 100;
+      return { price, rate, rawText };
+    };
+
+    for (const region of regions) {
+      const buy = await ocrPrice(region.buyRect);
+      const sell = await ocrPrice(region.sellRect);
+      if (!buy) {
+        console.warn(`[knct] Failed to extract buy price for ${region.type}`);
+        continue;
       }
+      prices.push({
+        giftCardType: region.type as 'hyundai' | 'shinsegae' | 'lotte',
+        denomination: 100000,
+        buyPrice: buy.price,
+        buyRate: buy.rate,
+        sellPrice: sell?.price,
+        sellRate: sell?.rate,
+      });
     }
     
     await worker.terminate();

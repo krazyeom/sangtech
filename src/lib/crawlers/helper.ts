@@ -117,10 +117,13 @@ export async function crawlGeneric(
 
       let buyPrice = 0;
       let buyRate = 0;
+      let sellPrice = 0;
+      let sellRate = 0;
 
       // 우선 input 속성에서 찾기 (그누보드 형태)
       if (input.length > 0) {
         const amt1 = input.attr('_amt1');
+        const amt2 = input.attr('_amt2');
         const itemAttr = input.attr('_item') || '';
         if (amt1 && !itemAttr.includes('증정') && !itemAttr.includes('제화')) {
           const parsed = parseInt(amt1);
@@ -128,6 +131,34 @@ export async function crawlGeneric(
             buyPrice = parsed;
             buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
           }
+        }
+        if (amt2 && !itemAttr.includes('증정') && !itemAttr.includes('제화')) {
+          const parsed = parseInt(amt2);
+          if (!isInvalidPrice(parsed)) {
+            sellPrice = parsed;
+            sellRate = Math.round(((100000 - sellPrice) / 100000) * 100 * 100) / 100;
+          }
+        }
+      }
+
+      const rowCandidates: PriceCandidate[] = [];
+      $(el).find('td').each((_, td) => {
+        const tdText = $(td).text();
+        const localPrices = extractPriceCandidates(tdText).filter(
+          (p) => p.price > 10000 && p.price <= 100000
+        );
+        rowCandidates.push(...localPrices);
+      });
+      if (rowCandidates.length > 0) {
+        const sorted = [...rowCandidates].sort((a, b) => a.price - b.price);
+        if (buyPrice === 0) {
+          buyPrice = sorted[0].price;
+          buyRate = sorted[0].rate;
+        }
+        if (sellPrice === 0) {
+          const sellCandidate = [...sorted].reverse().find((candidate) => candidate.price !== buyPrice) || sorted[sorted.length - 1];
+          sellPrice = sellCandidate.price;
+          sellRate = sellCandidate.rate;
         }
       }
 
@@ -188,10 +219,16 @@ export async function crawlGeneric(
                 denomination: 100000,
                 buyPrice,
                 buyRate,
+                sellPrice: sellPrice > 0 ? sellPrice : undefined,
+                sellRate: sellRate > 0 ? sellRate : undefined,
               });
             } else if (buyPrice > existing.buyPrice) {
               existing.buyPrice = buyPrice;
               existing.buyRate = buyRate;
+            }
+            if (sellPrice > 0 && existing && (!existing.sellPrice || sellPrice > existing.sellPrice)) {
+              existing.sellPrice = sellPrice;
+              existing.sellRate = sellRate;
             }
           }
         }

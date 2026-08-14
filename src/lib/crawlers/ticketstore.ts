@@ -21,16 +21,23 @@ export async function crawlTicketstore(): Promise<CrawlResult> {
 
       if (type && productName.includes('10만') && !productName.includes('카드')) {
         const wholesaleText = $(tr).find('.price-wholesale').first().text().replace(/[^\d]/g, '');
+        const retailText = $(tr).find('.price-retail').first().text().replace(/[^\d]/g, '');
         if (wholesaleText) {
           const buyPrice = parseInt(wholesaleText, 10);
+          const sellPrice = retailText ? parseInt(retailText, 10) : undefined;
           if (buyPrice > 10000 && buyPrice <= 100000) {
             const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
+            const sellRate = sellPrice && sellPrice > 0
+              ? Math.round(((100000 - sellPrice) / 100000) * 100 * 100) / 100
+              : undefined;
             if (!prices.find(p => p.giftCardType === type)) {
               prices.push({
                 giftCardType: type,
                 denomination: 100000,
                 buyPrice,
-                buyRate
+                buyRate,
+                sellPrice,
+                sellRate
               });
             }
           }

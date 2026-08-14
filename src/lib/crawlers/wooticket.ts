@@ -19,36 +19,40 @@ export async function crawlWooticket(): Promise<CrawlResult | null> {
       else if (text.includes('롯데')) type = 'lotte';
 
       if (type) {
-        // 보통 td 중 할인율(%)과 매입가(원)이 있음
-        // 96,400원 3.6%
         const tds = $(el).find('td');
         let buyPrice = 0;
         let buyRate = 0;
+        let sellPrice = 0;
+        let sellRate = 0;
 
         tds.each((i, td) => {
           const tdText = $(td).text().trim();
-          if (tdText.includes('원') || (tdText.includes(',') && parseInt(tdText.replace(/,/g, '')) > 10000)) {
-             const priceMatch = tdText.replace(/,/g, '').match(/(\d+)/);
-             if (priceMatch && parseInt(priceMatch[1]) > 10000) {
-                 const currentPrice = parseInt(priceMatch[1]);
-                 if (buyPrice === 0 || currentPrice < buyPrice) {
-                     buyPrice = currentPrice;
-                 }
-             }
+          const normalized = tdText.replace(/,/g, '');
+          const priceMatch = normalized.match(/(\d+)/);
+          if (priceMatch && parseInt(priceMatch[1], 10) > 10000) {
+            const currentPrice = parseInt(priceMatch[1], 10);
+            const currentRateMatch = normalized.match(/\(([-\d.]+)\s*%\)/);
+            const currentRate = currentRateMatch ? parseFloat(currentRateMatch[1]) : Math.round(((100000 - currentPrice) / 100000) * 10000) / 100;
+            if (buyPrice === 0 || currentPrice < buyPrice) {
+              buyPrice = currentPrice;
+              buyRate = currentRate;
+            }
+            if (sellPrice === 0 || currentPrice > sellPrice) {
+              sellPrice = currentPrice;
+              sellRate = currentRate;
+            }
           }
         });
 
         if (buyPrice > 0) {
-          buyRate = ((100000 - buyPrice) / 100000) * 100;
-          buyRate = Math.round(buyRate * 100) / 100; // 소수점 둘째자리까지
-
-          // 중복 방지
           if (!prices.find(p => p.giftCardType === type)) {
              prices.push({
                giftCardType: type,
                denomination: 100000,
                buyPrice,
                buyRate,
+               sellPrice: sellPrice > 0 ? sellPrice : undefined,
+               sellRate: sellRate > 0 ? sellRate : undefined,
              });
           }
         }
