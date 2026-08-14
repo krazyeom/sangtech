@@ -12,7 +12,7 @@ export async function crawlWoorigift(): Promise<CrawlResult> {
 
     $('table tr').each((_, tr) => {
       const tds = $(tr).find('td');
-      if (tds.length >= 3) {
+      if (tds.length >= 4) {
         const productName = $(tds[0]).text().replace(/\s+/g, '');
         if (!productName) return;
 
@@ -23,22 +23,25 @@ export async function crawlWoorigift(): Promise<CrawlResult> {
 
         if (type && productName.includes('10만')) {
           const buyText = $(tds[2]).text().replace(/\s+/g, '');
-          // e.g. "96.450원[3.55%]" or "96,450원(3.55%)"
-          const match = buyText.match(/([\d,\.]+)[원]?.*?[\[\(]([\d\.]+)\s*%/);
-          if (match) {
-            const priceStr = match[1].replace(/[^\d]/g, ''); // Remove . and ,
-            const buyPrice = parseInt(priceStr, 10);
-            const buyRate = parseFloat(match[2]);
+          const sellText = $(tds[3]).text().replace(/\s+/g, '');
+          const buyMatch = buyText.match(/([\d,\.]+)[원]?.*?[\[\(]([\d\.]+)\s*%/);
+          const sellMatch = sellText.match(/([\d,\.]+)[원]?.*?[\[\(]([\d\.]+)\s*%/);
 
-            if (buyPrice > 10000 && buyPrice <= 100000) {
-              if (!prices.find(p => p.giftCardType === type)) {
-                prices.push({
-                  giftCardType: type,
-                  denomination: 100000,
-                  buyPrice,
-                  buyRate
-                });
-              }
+          if (buyMatch) {
+            const buyPrice = parseInt(buyMatch[1].replace(/[^\d]/g, ''), 10);
+            const buyRate = parseFloat(buyMatch[2]);
+            const sellPrice = sellMatch ? parseInt(sellMatch[1].replace(/[^\d]/g, ''), 10) : undefined;
+            const sellRate = sellMatch ? parseFloat(sellMatch[2]) : undefined;
+
+            if (buyPrice > 10000 && buyPrice <= 100000 && !prices.find((p) => p.giftCardType === type)) {
+              prices.push({
+                giftCardType: type,
+                denomination: 100000,
+                buyPrice,
+                buyRate,
+                sellPrice,
+                sellRate,
+              });
             }
           }
         }
@@ -52,6 +55,6 @@ export async function crawlWoorigift(): Promise<CrawlResult> {
     siteName: '행복상품권',
     siteUrl: url,
     timestamp: new Date(),
-    prices
+    prices,
   };
 }

@@ -22,30 +22,39 @@ export async function crawlWooh(): Promise<CrawlResult | null> {
 
       const normalizedText = text.replace(/\s+/g, '');
       const hasTenK = normalizedText.includes('10만');
-      
+
       if (hasTenK && !normalizedText.includes('증정') && !normalizedText.includes('제화')) {
         let type: PriceInfo['giftCardType'] | null = null;
         if (normalizedText.includes('신세계')) type = 'shinsegae';
         else if (normalizedText.includes('현대')) type = 'hyundai';
         else if (normalizedText.includes('롯데')) type = 'lotte';
 
-        if (type && !prices.find(p => p.giftCardType === type)) {
+        if (type && !prices.find((p) => p.giftCardType === type)) {
           const tds = $(el).find('td');
-          if (tds.length >= 3) {
-             const buyPriceText = $(tds[1]).text().trim();
-             const match = buyPriceText.match(/([\d,]+)\s*원?/);
-             if (match) {
-                 const buyPrice = parseInt(match[1].replace(/,/g, ''), 10);
-                 if (buyPrice > 0 && buyPrice <= 100000) {
-                     const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
-                     prices.push({
-                         giftCardType: type,
-                         denomination: 100000,
-                         buyPrice,
-                         buyRate
-                     });
-                 }
-             }
+          if (tds.length >= 4) {
+            const buyText = $(tds[1]).text().replace(/\s+/g, '');
+            const sellText = $(tds[2]).text().replace(/\s+/g, '');
+            const buyMatch = buyText.match(/([\d,]+)\s*원?/);
+            const sellMatch = sellText.match(/([\d,]+)\s*원?/);
+
+            if (buyMatch) {
+              const buyPrice = parseInt(buyMatch[1].replace(/,/g, ''), 10);
+              const sellPrice = sellMatch ? parseInt(sellMatch[1].replace(/,/g, ''), 10) : undefined;
+              if (buyPrice > 0 && buyPrice <= 100000) {
+                const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
+                const sellRate = sellPrice && sellPrice > 0
+                  ? Math.round(((100000 - sellPrice) / 100000) * 100 * 100) / 100
+                  : undefined;
+                prices.push({
+                  giftCardType: type,
+                  denomination: 100000,
+                  buyPrice,
+                  buyRate,
+                  sellPrice,
+                  sellRate,
+                });
+              }
+            }
           }
         }
       }

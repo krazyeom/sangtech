@@ -12,43 +12,41 @@ export async function crawlVipticket(): Promise<CrawlResult> {
     const $ = cheerio.load(data);
 
     $('table.type11').each((_, table) => {
-      // Due to invalid HTML (span directly inside tr), cheerio hoists .makername outside the table
       const titleText = $(table).parent().find('.makername').text().replace(/\s+/g, '');
       let type: PriceInfo['giftCardType'] | null = null;
-      
+
       if (titleText.includes('신세계')) type = 'shinsegae';
       else if (titleText.includes('현대')) type = 'hyundai';
       else if (titleText.includes('롯데')) type = 'lotte';
 
-      if (type && !prices.find(p => p.giftCardType === type)) {
+      if (type && !prices.find((p) => p.giftCardType === type)) {
         $(table).find('tbody tr').each((_, tr) => {
           const rowText = $(tr).text().replace(/\s+/g, '');
-          if (rowText.includes('10만') && !rowText.includes('증정') && !rowText.includes('제화')) {
-            let bestPrice = Infinity;
-            let bestRate = 0;
-            let foundIche = false;
-            
-            // Loop through tds and parse
-            $(tr).find('td').each((i, td) => {
-                const tdText = $(td).text();
-                const parsed = parsePriceText(tdText);
-                if (parsed && parsed.price > 10000) {
-                    // Columns: 0: Name, 1: 파실때(이체), 2: 파실때(현금), 3: 사실때(이체), 4: 사실때(현금)
-                    // The user wants 파실때(이체) which is column 1
-                    if (i === 1) {
-                        bestPrice = parsed.price;
-                        bestRate = parsed.rate;
-                    }
-                }
-            });
+          if (!rowText.includes('10만') || rowText.includes('증정') || rowText.includes('제화')) return;
 
-            if (bestPrice !== Infinity) {
-                prices.push({
-                    giftCardType: type,
-                    denomination: 100000,
-                    buyPrice: bestPrice,
-                    buyRate: bestRate
-                });
+          const tds = $(tr).find('td');
+          if (tds.length >= 5) {
+            const buyTransfer = parsePriceText($(tds[1]).text());
+            const buyCash = parsePriceText($(tds[2]).text());
+            const sellTransfer = parsePriceText($(tds[3]).text());
+            const sellCash = parsePriceText($(tds[4]).text());
+
+            const buyCandidate = [buyTransfer, buyCash]
+              .filter(Boolean)
+              .reduce<{ price: number; rate: number } | null>((best, current) => (!best || current!.price > best.price ? current! : best), null);
+            const sellCandidate = [sellTransfer, sellCash]
+              .filter(Boolean)
+              .reduce<{ price: number; rate: number } | null>((best, current) => (!best || current!.price > best.price ? current! : best), null);
+
+            if (buyCandidate) {
+              prices.push({
+                giftCardType: type,
+                denomination: 100000,
+                buyPrice: buyCandidate.price,
+                buyRate: buyCandidate.rate,
+                sellPrice: sellCandidate?.price,
+                sellRate: sellCandidate?.rate,
+              });
             }
           }
         });
@@ -61,7 +59,7 @@ export async function crawlVipticket(): Promise<CrawlResult> {
 
   return {
     siteName: 'VIP상품권(잠실)',
-    siteUrl: 'https://vip상품권.com', // Display url
+    siteUrl: 'https://vip상품권.com',
     timestamp: new Date(),
     prices
   };

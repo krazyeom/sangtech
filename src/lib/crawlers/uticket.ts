@@ -12,37 +12,36 @@ export async function crawlUticket(): Promise<CrawlResult | null> {
     });
 
     const html = response.data;
-    
-    // JSON 데이터 추출 (Next.js 서버 사이드 렌더링된 스크립트 대응)
-    const match = html.match(/\\?"giftCards\\?":(\[.*?\])/);
+    const match = html.match(/\?"giftCards\?":(\[.*?\])/);
     if (!match) return null;
 
     let giftCards;
     try {
-      // JSON 문자열의 이스케이프 문자 등을 처리
-      const jsonStr = match[1].replace(/\\"/g, '"');
+      const jsonStr = match[1].replace(/\"/g, '"');
       giftCards = JSON.parse(jsonStr);
     } catch (e) {
-       // parsing 오류시 좀 더 정교하게 처리
-       const start = html.indexOf('"giftCards":') + 12;
-       let bracketCount = 0;
-       let end = start;
-       for (let i = start; i < html.length; i++) {
-           if (html[i] === '[') bracketCount++;
-           else if (html[i] === ']') bracketCount--;
-           
-           if (bracketCount === 0 && html[i] === ']') {
-               end = i + 1;
-               break;
-           }
-       }
-       const cleanJson = html.substring(start, end).replace(/\\"/g, '"').replace(/\\n/g, '').replace(/\\/g, '');
-       try {
-           giftCards = JSON.parse(cleanJson);
-       } catch (err) {
-           console.error("Uticket JSON parse error:", err);
-           return null;
-       }
+      const start = html.indexOf('"giftCards":') + 12;
+      let bracketCount = 0;
+      let end = start;
+      for (let i = start; i < html.length; i++) {
+        if (html[i] === '[') bracketCount++;
+        else if (html[i] === ']') bracketCount--;
+        if (bracketCount === 0 && html[i] === ']') {
+          end = i + 1;
+          break;
+        }
+      }
+      const cleanJson = html
+        .substring(start, end)
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, '')
+        .replaceAll('\\', '');
+      try {
+        giftCards = JSON.parse(cleanJson);
+      } catch (err) {
+        console.error('Uticket JSON parse error:', err);
+        return null;
+      }
     }
 
     const prices: PriceInfo[] = [];
@@ -55,15 +54,18 @@ export async function crawlUticket(): Promise<CrawlResult | null> {
         else if (card.name.includes('롯데')) type = 'lotte';
 
         if (type) {
-          // buyPriceBank (계좌이체 매입가) 사용, 없으면 buyPrice
           const buyPrice = card.buyPriceBank > 0 ? card.buyPriceBank : card.buyPrice;
+          const sellPrice = card.sellPriceBank > 0 ? card.sellPriceBank : card.sellPrice;
           if (buyPrice > 0) {
             const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
+            const sellRate = sellPrice > 0 ? Math.round(((100000 - sellPrice) / 100000) * 100 * 100) / 100 : undefined;
             prices.push({
               giftCardType: type,
               denomination: 100000,
               buyPrice,
-              buyRate
+              buyRate,
+              sellPrice: sellPrice > 0 ? sellPrice : undefined,
+              sellRate,
             });
           }
         }

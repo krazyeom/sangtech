@@ -34,6 +34,8 @@ async function main() {
           denomination: p.denomination,
           buy_price: p.buyPrice,
           buy_rate: p.buyRate,
+          sell_price: p.sellPrice ?? null,
+          sell_rate: p.sellRate ?? null,
           crawled_at: res.timestamp.toISOString()
         });
       }

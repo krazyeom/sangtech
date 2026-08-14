@@ -1,7 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { CrawlResult, PriceInfo } from '../types';
-import { parsePriceText } from './helper';
 
 export async function crawlCitypay(): Promise<CrawlResult> {
   const url = 'https://city-pay.co.kr';
@@ -11,67 +10,38 @@ export async function crawlCitypay(): Promise<CrawlResult> {
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
 
-    // city-pay places multiple cards in the same TR, so we should search td by td
     $('td').each((_, td) => {
       const text = $(td).text().replace(/\s+/g, '');
-      
-      // Look for a cell that has the gift card name and '10만원권'
+
       let type: PriceInfo['giftCardType'] | null = null;
       if (text.includes('신세계백화점10만원권') && !text.includes('증정')) type = 'shinsegae';
       else if (text.includes('현대백화점10만원권') && !text.includes('증정')) type = 'hyundai';
       else if (text.includes('롯데백화점10만원권') && !text.includes('증정')) type = 'lotte';
 
       if (type) {
-        // The price is usually in the next few tds
-        // Let's grab the next sibling td
-        const nextTd = $(td).next('td');
-        const nextNextTd = nextTd.next('td');
-        
-        let bestPrice = Infinity;
-        let bestRate = 0;
-        let foundIche = false;
-        
-        const extractFromTd = (el: cheerio.Cheerio<any>) => {
-            const tdText = el.text();
-            const matches = Array.from(tdText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)\s*(이체|현금)?/g));
-            if (matches.length > 0) {
-                for (const match of matches) {
-                    const price = parseInt(match[1].replace(/,/g, ''), 10);
-                    const rate = parseFloat(match[2]);
-                    const kind = match[3];
-                    if (price > 10000) {
-                        if (kind === '이체') {
-                            if (!foundIche || price > bestPrice) {
-                                bestPrice = price;
-                                bestRate = rate;
-                                foundIche = true;
-                            }
-                        } else if (!foundIche && (bestPrice === Infinity || price > bestPrice)) {
-                            bestPrice = price;
-                            bestRate = rate;
-                        }
-                    }
-                }
-            } else {
-                const parsed = parsePriceText(tdText);
-                if (parsed && parsed.price > 10000 && !foundIche) {
-                    if (parsed.price < bestPrice) {
-                        bestPrice = parsed.price;
-                        bestRate = parsed.rate;
-                    }
-                }
-            }
-        };
+        const row = $(td).parent('tr');
+        const tds = row.find('td');
+        const buyText = $(tds[1]).text().replace(/\s+/g, '');
+        const sellText = $(tds[2]).text().replace(/\s+/g, '');
 
-        extractFromTd(nextTd);
-        extractFromTd(nextNextTd);
+        const buyCandidates = Array.from(buyText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/g))
+          .map((match) => ({ price: parseInt(match[1].replace(/,/g, ''), 10), rate: parseFloat(match[2]) }))
+          .filter((entry) => Number.isFinite(entry.price) && entry.price > 10000);
+        const buyCandidate = buyCandidates.reduce<{ price: number; rate: number } | null>((best, current) => (best && best.price > current.price ? best : current), null);
 
-        if (bestPrice !== Infinity && !prices.find(p => p.giftCardType === type)) {
+        const sellMatch = sellText.match(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/);
+        const sellCandidate = sellMatch
+          ? { price: parseInt(sellMatch[1].replace(/,/g, ''), 10), rate: parseFloat(sellMatch[2]) }
+          : null;
+
+        if (buyCandidate && !prices.find((p) => p.giftCardType === type)) {
           prices.push({
             giftCardType: type,
             denomination: 100000,
-            buyPrice: bestPrice,
-            buyRate: bestRate,
+            buyPrice: buyCandidate.price,
+            buyRate: buyCandidate.rate,
+            sellPrice: sellCandidate?.price,
+            sellRate: sellCandidate?.rate,
           });
         }
       }

@@ -8,38 +8,47 @@ export async function crawlDream(): Promise<CrawlResult> {
 
   try {
     const { data } = await axios.get(apiUrl);
-    
+
     if (data && Array.isArray(data.products)) {
       for (const item of data.products) {
         if (item.amount === 100000) {
           let type: PriceInfo['giftCardType'] | null = null;
-          
+
           if (item.brandKey === 'sinsegae') type = 'shinsegae';
           else if (item.brandKey === 'hyundai') type = 'hyundai';
           else if (item.brandKey === 'lotte') type = 'lotte';
 
           if (type) {
-            // Prefer transfer price over cash price
             const buyTransfer = item.buy?.transfer;
             const buyCash = item.buy?.cash;
-            
-            let bestPrice = Infinity;
-            let bestRate = 0;
+            const sellPriceInfo = item.sell;
+
+            let buyPrice = 0;
+            let buyRate = 0;
+            let sellPrice = 0;
+            let sellRate = 0;
 
             if (buyTransfer && typeof buyTransfer.price === 'number') {
-              bestPrice = buyTransfer.price;
-              bestRate = buyTransfer.discountRate || 0;
+              buyPrice = buyTransfer.price;
+              buyRate = buyTransfer.discountRate || 0;
             } else if (buyCash && typeof buyCash.price === 'number') {
-              bestPrice = buyCash.price;
-              bestRate = buyCash.discountRate || 0;
+              buyPrice = buyCash.price;
+              buyRate = buyCash.discountRate || 0;
             }
 
-            if (bestPrice !== Infinity && !prices.find(p => p.giftCardType === type)) {
+            if (sellPriceInfo && typeof sellPriceInfo.price === 'number') {
+              sellPrice = sellPriceInfo.price;
+              sellRate = sellPriceInfo.discountRate || 0;
+            }
+
+            if (buyPrice > 0 && !prices.find((p) => p.giftCardType === type)) {
               prices.push({
                 giftCardType: type,
                 denomination: 100000,
-                buyPrice: bestPrice,
-                buyRate: bestRate
+                buyPrice,
+                buyRate,
+                sellPrice: sellPrice > 0 ? sellPrice : undefined,
+                sellRate: sellRate > 0 ? sellRate : undefined,
               });
             }
           }

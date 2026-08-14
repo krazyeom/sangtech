@@ -9,8 +9,7 @@ export async function crawlHiticket(): Promise<CrawlResult> {
   if ($) {
     $('tr').each((_, el) => {
       const text = $(el).text().replace(/\s+/g, ' ');
-      
-      // 50만원권 기준으로 10만원권 환산 시세 적용
+
       if (text.includes('50만원') && !text.includes('증정') && !text.includes('제화')) {
         let type: PriceInfo['giftCardType'] | null = null;
         if (text.includes('신세계')) type = 'shinsegae';
@@ -18,31 +17,32 @@ export async function crawlHiticket(): Promise<CrawlResult> {
         else if (text.includes('롯데')) type = 'lotte';
 
         if (type) {
-          let minPrice = Infinity;
-          let minRate = 0;
-          $(el).find('td').each((_, td) => {
+          let buyPrice = 0;
+          let buyRate = 0;
+          let sellPrice = 0;
+          let sellRate = 0;
+          $(el).find('td').each((i, td) => {
             const parsed = parsePriceText($(td).text());
             if (parsed && parsed.price > 10000) {
-              if (parsed.price < minPrice) {
-                minPrice = parsed.price;
-                minRate = parsed.rate;
+              if (i === 2) {
+                buyPrice = parsed.price;
+                buyRate = parsed.rate;
+              } else if (i === 3) {
+                sellPrice = parsed.price;
+                sellRate = parsed.rate;
               }
             }
           });
 
-          if (minPrice !== Infinity) {
-            // minPrice is for 500,000 won. Normalize to 100,000 won.
-            // But wait, the rate is already calculated for 500,000 won.
-            // minRate is 3.4%. So buyPrice = 100000 - (100000 * 3.4 / 100)
-            const normalizedPrice = 100000 - (100000 * minRate / 100);
-            if (!prices.find(p => p.giftCardType === type)) {
-              prices.push({
-                giftCardType: type,
-                denomination: 100000, // Standardized to 10만원
-                buyPrice: normalizedPrice,
-                buyRate: minRate
-              });
-            }
+          if (buyPrice > 0) {
+            prices.push({
+              giftCardType: type,
+              denomination: 100000,
+              buyPrice,
+              buyRate,
+              sellPrice: sellPrice > 0 ? sellPrice : undefined,
+              sellRate: sellRate > 0 ? sellRate : undefined,
+            });
           }
         }
       }

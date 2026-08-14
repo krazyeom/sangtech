@@ -33,10 +33,13 @@ async function loadRenderedRows(url: string): Promise<string[] | null> {
           (el) => {
             const dataRows = [...el.querySelectorAll('tr')].filter((tr) => tr.querySelectorAll('td').length >= 2);
             const firstDataRow = dataRows[1] || dataRows[0] || null;
-            const secondCell = firstDataRow?.querySelectorAll('td')[1] || null;
-            return (secondCell?.textContent || '').replace(/\s+/g, ' ').trim();
+            const firstCell = firstDataRow?.querySelectorAll('td')[1] || null;
+            const secondCell = firstDataRow?.querySelectorAll('td')[2] || null;
+            return [firstCell?.textContent || '', secondCell?.textContent || '']
+              .map((s) => s.replace(/\s+/g, ' ').trim())
+              .filter(Boolean);
           }
-        )
+        ).flat()
       );
       await browser.close();
       return rows;
@@ -55,17 +58,22 @@ export async function crawlGogoExchange(): Promise<CrawlResult> {
   const rowTexts = await loadRenderedRows(url);
   const prices: PriceInfo[] = [];
 
-  if (rowTexts && rowTexts.length >= SITE_ORDER.length) {
+  if (rowTexts && rowTexts.length >= SITE_ORDER.length * 2) {
     for (let i = 0; i < SITE_ORDER.length; i += 1) {
       const site = SITE_ORDER[i];
-      const preferred = parseRowText(rowTexts[i] || '');
-      if (!preferred) continue;
+      const buyText = rowTexts[i * 2] || '';
+      const sellText = rowTexts[i * 2 + 1] || '';
+      const buyPreferred = parseRowText(buyText);
+      const sellPreferred = parseRowText(sellText);
+      if (!buyPreferred) continue;
 
       prices.push({
         giftCardType: site.type,
         denomination: 100000,
-        buyPrice: preferred.price,
-        buyRate: preferred.rate,
+        buyPrice: buyPreferred.price,
+        buyRate: buyPreferred.rate,
+        sellPrice: sellPreferred?.price,
+        sellRate: sellPreferred?.rate,
       });
     }
   }

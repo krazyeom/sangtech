@@ -21,7 +21,7 @@ export async function crawlPyTicket(): Promise<CrawlResult> {
   const prices: PriceInfo[] = [];
 
   if ($) {
-    const candidateMap = new Map<PriceInfo['giftCardType'], Candidate>();
+    const candidateMap = new Map<PriceInfo['giftCardType'], { buy?: Candidate; sell?: Candidate }>();
 
     $('tr').each((_, el) => {
       const rowText = $(el).text().replace(/\s+/g, '');
@@ -31,34 +31,46 @@ export async function crawlPyTicket(): Promise<CrawlResult> {
       for (const { key, label } of TYPES) {
         if (!rowText.includes(label.replace(/\s+/g, ''))) continue;
 
-        const priceCell = $(el).find('td').eq(1);
-        const priceText = priceCell.text().replace(/\s+/g, '');
-        const priceMatch = priceText.match(/([\d,]+)원/);
-        if (!priceMatch) continue;
+        const priceCells = $(el).find('td');
+        const buyCell = priceCells.eq(1).text().replace(/\s+/g, '');
+        const sellCell = priceCells.eq(2).text().replace(/\s+/g, '');
+        const buyMatch = buyCell.match(/([\d,]+)원/);
+        const sellMatch = sellCell.match(/([\d,]+)원/);
+        if (!buyMatch) continue;
 
-        const buyPrice = parseInt(priceMatch[1].replace(/,/g, ''), 10);
+        const buyPrice = parseInt(buyMatch[1].replace(/,/g, ''), 10);
         if (buyPrice <= 0 || buyPrice === BAD_PRICE) return;
 
-        const rateMatch = priceText.match(/\(([\d.]+)%\)/);
-        const buyRate = rateMatch
-          ? parseFloat(rateMatch[1])
+        const buyRateMatch = buyCell.match(/\(([\d.]+)%\)/);
+        const buyRate = buyRateMatch
+          ? parseFloat(buyRateMatch[1])
           : Math.round(((100000 - buyPrice) / 100000) * 10000) / 100;
+        const sellPrice = sellMatch ? parseInt(sellMatch[1].replace(/,/g, ''), 10) : undefined;
+        const sellRateMatch = sellCell.match(/\(([\d.]+)%\)/);
+        const sellRate = sellRateMatch ? parseFloat(sellRateMatch[1]) : undefined;
 
         const prev = candidateMap.get(key);
-        if (!prev || (special && !prev.special) || (special === prev.special && buyPrice > prev.price)) {
-          candidateMap.set(key, { price: buyPrice, rate: buyRate, special });
+        const nextBuy = { price: buyPrice, rate: buyRate, special };
+        const nextSell = sellPrice && sellRate ? { price: sellPrice, rate: sellRate, special } : undefined;
+
+        if (!prev || (special && !prev.buy?.special) || (special === prev.buy?.special && buyPrice > (prev.buy?.price || 0))) {
+          candidateMap.set(key, { buy: nextBuy, sell: nextSell || prev?.sell });
+        } else if (nextSell) {
+          candidateMap.set(key, { buy: prev.buy, sell: nextSell });
         }
       }
     });
 
     for (const { key } of TYPES) {
       const candidate = candidateMap.get(key);
-      if (!candidate) continue;
+      if (!candidate?.buy) continue;
       prices.push({
         giftCardType: key,
         denomination: 100000,
-        buyPrice: candidate.price,
-        buyRate: candidate.rate,
+        buyPrice: candidate.buy.price,
+        buyRate: candidate.buy.rate,
+        sellPrice: candidate.sell?.price,
+        sellRate: candidate.sell?.rate,
       });
     }
   }
