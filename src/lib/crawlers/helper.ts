@@ -275,11 +275,36 @@ export async function crawlGeneric(
         rowCandidates.push(...localPrices);
       });
       if (rowCandidates.length > 0) {
+        const hasMethodHint = rowCandidates.some((candidate) => candidate.method !== null);
         const sorted = [...rowCandidates].sort((a, b) => a.price - b.price);
-        if (sellPrice === 0) {
-          const sellCandidate = [...sorted].reverse().find((candidate) => candidate.price !== buyPrice) || sorted[sorted.length - 1];
-          sellPrice = sellCandidate.price;
-          sellRate = sellCandidate.rate;
+
+        if (!hasMethodHint) {
+          const fallbackBuy = sorted[0];
+          const fallbackSell = sorted[sorted.length - 1];
+          if (buyPrice === 0) {
+            buyPrice = fallbackBuy.price;
+            buyRate = fallbackBuy.rate;
+          }
+          if (sellPrice === 0) {
+            sellPrice = fallbackSell.price;
+            sellRate = fallbackSell.rate;
+          }
+        } else {
+          const buyCandidate = pickPreferredCandidate(rowCandidates, 'transfer');
+          const sellCandidate = pickPreferredCandidate(rowCandidates, 'cash');
+          if (buyPrice === 0 && buyCandidate) {
+            buyPrice = buyCandidate.price;
+            buyRate = buyCandidate.rate;
+          }
+          if (sellPrice === 0 && sellCandidate) {
+            sellPrice = sellCandidate.price;
+            sellRate = sellCandidate.rate;
+          }
+          if (sellPrice === 0) {
+            const fallbackSell = sorted[sorted.length - 1];
+            sellPrice = fallbackSell.price;
+            sellRate = fallbackSell.rate;
+          }
         }
       }
 

@@ -46,10 +46,11 @@ export async function crawlBestgift(): Promise<CrawlResult> {
       if (!currentType || collectedPrices.length === 0) return;
       const eligible = collectedPrices.filter((price) => price > 10000 && price <= 100000);
       if (eligible.length === 0) return;
-      const buyPrice = eligible[0];
-      const sellPrice = eligible[1] ?? undefined;
+      const sorted = [...eligible].sort((a, b) => a - b);
+      const buyPrice = sorted[0];
+      const sellPrice = sorted[sorted.length - 1];
       const buyRate = Math.round(((100000 - buyPrice) / 100000) * 10000) / 100;
-      const sellRate = sellPrice ? Math.round(((100000 - sellPrice) / 100000) * 10000) / 100 : undefined;
+      const sellRate = Math.round(((100000 - sellPrice) / 100000) * 10000) / 100;
       if (!prices.find((p) => p.giftCardType === currentType)) {
         prices.push({
           giftCardType: currentType,
