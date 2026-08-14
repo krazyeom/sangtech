@@ -10,11 +10,11 @@ const SITE_ORDER: Array<{ type: 'lotte' | 'shinsegae' | 'hyundai'; tabClass: str
 const MIN_PRICE = 10000;
 const MAX_PRICE = 1000000;
 
-function parseRowText(rowText: string) {
+function parseRowText(rowText: string, preferredMethod: 'cash' | 'transfer' = 'transfer') {
   const candidates = extractPriceCandidates(rowText).filter(
     (candidate) => candidate.price > MIN_PRICE && candidate.price <= MAX_PRICE
   );
-  return pickPreferredCandidate(candidates);
+  return pickPreferredCandidate(candidates, preferredMethod);
 }
 
 async function loadRenderedRows(url: string): Promise<string[] | null> {
@@ -63,8 +63,8 @@ export async function crawlGogoExchange(): Promise<CrawlResult> {
       const site = SITE_ORDER[i];
       const buyText = rowTexts[i * 2] || '';
       const sellText = rowTexts[i * 2 + 1] || '';
-      const buyPreferred = parseRowText(buyText);
-      const sellPreferred = parseRowText(sellText);
+      const buyPreferred = parseRowText(buyText, 'transfer');
+      const sellPreferred = parseRowText(sellText, 'cash');
       if (!buyPreferred) continue;
 
       prices.push({
