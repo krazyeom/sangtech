@@ -62,8 +62,6 @@ export async function crawlBestgift(): Promise<CrawlResult> {
 
       if (text.includes('100,000') || text.includes('10만')) {
         currentAmount = 100000;
-      } else if (text.includes('50만')) {
-        currentAmount = 500000;
       }
 
       // If we see a percentage like "3.2%" or price like "96,500"
