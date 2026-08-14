@@ -28,6 +28,19 @@ const isExcludedCompareSite = (siteName: string) =>
 
 type ViewMode = 'buy' | 'sell';
 
+const VIEW_META: Record<ViewMode, { title: string; subtitle: string; helper: string }> = {
+  buy: {
+    title: '매입가',
+    subtitle: '고객이 팔 때',
+    helper: '우리에게 판매할 때 비교하는 값',
+  },
+  sell: {
+    title: '판매가',
+    subtitle: '고객이 살 때',
+    helper: '고객이 구매할 때 비교하는 값',
+  },
+};
+
 export default function Home() {
   const [prices, setPrices] = useState<PriceData[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -145,14 +158,52 @@ export default function Home() {
 
   return (
     <div className="container">
-      <section className="card" style={{ padding: '1rem 1.25rem', marginBottom: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontWeight: 800, fontSize: '1rem' }}>표시 기준</div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {(['buy', 'sell'] as ViewMode[]).map((mode) => (
-            <button key={mode} type="button" onClick={() => setView(mode)} style={{ border: '1px solid var(--border-color)', background: view === mode ? 'var(--primary-color)' : 'var(--card-bg)', color: view === mode ? '#fff' : 'var(--text-primary)', padding: '0.65rem 1rem', borderRadius: '999px', cursor: 'pointer', fontWeight: 700 }}>
-              {mode === 'buy' ? '매입가' : '판매가'}
-            </button>
-          ))}
+      <section className="card" style={{ padding: '1rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.75rem' }}>
+          {(['buy', 'sell'] as ViewMode[]).map((mode) => {
+            const active = view === mode;
+            const meta = VIEW_META[mode];
+            return (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setView(mode)}
+                style={{
+                  textAlign: 'left',
+                  border: active ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
+                  background: active ? 'linear-gradient(135deg, var(--primary-color), #2563eb)' : 'var(--card-bg)',
+                  color: active ? '#fff' : 'var(--text-primary)',
+                  padding: '1rem 1rem 0.95rem',
+                  borderRadius: '18px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  boxShadow: active ? '0 10px 24px rgba(37,99,235,0.25)' : 'none',
+                  transform: active ? 'translateY(-1px)' : 'none',
+                  transition: 'all 0.18s ease',
+                  minHeight: '92px',
+                }}
+              >
+                <div style={{ fontSize: '0.78rem', letterSpacing: '0.08em', opacity: active ? 0.9 : 0.7, marginBottom: '0.4rem' }}>
+                  {active ? '선택됨' : '탭'}
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, lineHeight: 1.2 }}>{meta.title}</div>
+                <div style={{ marginTop: '0.25rem', fontSize: '0.9rem', fontWeight: 600, opacity: active ? 0.95 : 0.82 }}>
+                  {meta.subtitle}
+                </div>
+                <div style={{ marginTop: '0.35rem', fontSize: '0.82rem', opacity: active ? 0.9 : 0.72, lineHeight: 1.4 }}>
+                  {meta.helper}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 700 }}>현재 화면</span>
+          <span style={{ padding: '0.35rem 0.65rem', borderRadius: '999px', background: 'var(--primary-color)', color: '#fff', fontWeight: 800, fontSize: '0.85rem' }}>
+            {VIEW_META[view].title}
+          </span>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{VIEW_META[view].subtitle}</span>
         </div>
       </section>
 

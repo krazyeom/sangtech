@@ -55,7 +55,8 @@ export async function crawlUticket(): Promise<CrawlResult | null> {
 
         if (type) {
           const buyPrice = card.buyPriceBank > 0 ? card.buyPriceBank : card.buyPrice;
-          const sellPrice = card.sellPriceBank > 0 ? card.sellPriceBank : card.sellPrice;
+          // 판매가는 고객이 살 때 기준이므로 현금가를 우선 사용한다.
+          const sellPrice = card.sellPrice > 0 ? card.sellPrice : card.sellPriceBank;
           if (buyPrice > 0) {
             const buyRate = Math.round(((100000 - buyPrice) / 100000) * 100 * 100) / 100;
             const sellRate = sellPrice > 0 ? Math.round(((100000 - sellPrice) / 100000) * 100 * 100) / 100 : undefined;
