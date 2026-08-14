@@ -168,7 +168,7 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '1.25rem', padding: '0.22rem', borderRadius: '999px', background: 'rgba(148,163,184,0.10)', border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', gap: '0.18rem', marginTop: '1.25rem', padding: '0.16rem', borderRadius: '999px', background: 'rgba(148,163,184,0.10)', border: '1px solid var(--border-color)' }}>
           {(['buy', 'sell'] as ViewMode[]).map((mode) => {
             const active = view === mode;
             return (
@@ -181,37 +181,37 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
                   flex: 1,
                   minWidth: 0,
                   border: 'none',
-                  background: active ? 'rgba(37,99,235,0.12)' : 'transparent',
+                  background: active ? '#fff' : 'transparent',
                   color: active ? 'var(--primary-color)' : 'var(--text-secondary)',
-                  padding: '0.42rem 0.55rem',
+                  padding: '0.32rem 0.48rem',
                   borderRadius: '999px',
                   cursor: 'pointer',
                   fontWeight: 700,
-                  boxShadow: active ? 'inset 0 0 0 1px rgba(37,99,235,0.18)' : 'none',
+                  boxShadow: active ? 'none' : 'none',
                   transition: 'all 0.16s ease',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
                   <div style={{ minWidth: 0, textAlign: 'left' }}>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, lineHeight: 1.1 }}>{VIEW_LABELS[mode]}</div>
-                    <div style={{ marginTop: '0.12rem', fontSize: '0.7rem', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 800, lineHeight: 1.1 }}>{VIEW_LABELS[mode]}</div>
+                    <div style={{ marginTop: '0.12rem', fontSize: '0.66rem', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {VIEW_META[mode].subtitle}
                     </div>
                   </div>
                   <span style={{
                     flexShrink: 0,
-                    width: '0.52rem',
-                    height: '0.52rem',
+                    width: '0.4rem',
+                    height: '0.4rem',
                     borderRadius: '999px',
                     background: active ? 'var(--primary-color)' : 'rgba(148,163,184,0.45)',
-                    boxShadow: active ? '0 0 0 2px rgba(37,99,235,0.10)' : 'none',
+                    boxShadow: active ? '0 0 0 1px rgba(37,99,235,0.10)' : 'none',
                   }} />
                 </div>
               </button>
             );
           })}
         </div>
-        <div style={{ marginTop: '0.45rem', fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+        <div style={{ marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
           {VIEW_META[view].helper}
         </div>
       </section>
