@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import path from 'path';
 import ws from 'ws';
+import { insertPricesWithFallback } from '../lib/db/price-insert';
 
 // Polyfill WebSocket for Supabase in Node.js < 22 environments
 (global as any).WebSocket = ws;
@@ -48,10 +49,13 @@ async function main() {
         throw deleteError;
       }
 
-      const { error: insertError } = await client.from('prices').insert(rowsToInsert);
-      if (insertError) {
-        console.error('[Local Crawler] Failed to insert new prices:', insertError);
-        throw insertError;
+      const insertResult = await insertPricesWithFallback(client as any, rowsToInsert);
+      if (insertResult.error) {
+        console.error('[Local Crawler] Failed to insert new prices:', insertResult.error);
+        throw insertResult.error;
+      }
+      if (insertResult.fallbackUsed) {
+        console.warn('[Local Crawler] sell_price/sell_rate columns are missing; saved buy prices only for now.');
       }
       
       // Get today's date in KST (UTC+9)

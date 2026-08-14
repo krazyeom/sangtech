@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { crawlAll } from '@/lib/crawlers';
 import db, { hasSupabaseConfig } from '@/lib/db';
+import { insertPricesWithFallback } from '@/lib/db/price-insert';
 
 export const dynamic = 'force-dynamic'; // 항상 동적으로 실행되도록 (캐시 방지)
 
@@ -58,10 +59,13 @@ export async function GET(request: Request) {
       }
 
       // 3. 최신 데이터 삽입
-      const { error: insertError } = await client.from('prices').insert(rowsToInsert);
-      if (insertError) {
-        console.error('[Cron] Failed to insert new prices:', insertError);
-        throw insertError;
+      const insertResult = await insertPricesWithFallback(client as any, rowsToInsert);
+      if (insertResult.error) {
+        console.error('[Cron] Failed to insert new prices:', insertResult.error);
+        throw insertResult.error;
+      }
+      if (insertResult.fallbackUsed) {
+        console.warn('[Cron] sell_price/sell_rate columns are missing; saved buy prices only for now.');
       }
       
       // 4. 시세 변동 기록 (price_history) 저장

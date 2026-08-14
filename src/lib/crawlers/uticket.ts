@@ -12,12 +12,12 @@ export async function crawlUticket(): Promise<CrawlResult | null> {
     });
 
     const html = response.data;
-    const match = html.match(/\?"giftCards\?":(\[.*?\])/);
+    const match = html.match(/\\?\"giftCards\\?\":(\[.*?\])/);
     if (!match) return null;
 
     let giftCards;
     try {
-      const jsonStr = match[1].replace(/\"/g, '"');
+      const jsonStr = match[1].replace(/\\\"/g, '"');
       giftCards = JSON.parse(jsonStr);
     } catch (e) {
       const start = html.indexOf('"giftCards":') + 12;
