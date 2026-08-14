@@ -168,7 +168,7 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.75rem', marginTop: '1.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
           {(['buy', 'sell'] as ViewMode[]).map((mode) => {
             const active = view === mode;
             return (
@@ -178,40 +178,45 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
                 aria-pressed={active}
                 onClick={() => setView(mode)}
                 style={{
+                  flex: 1,
+                  minWidth: 0,
                   textAlign: 'left',
-                  border: active ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
-                  background: active ? 'linear-gradient(135deg, var(--primary-color), #2563eb)' : 'var(--card-bg)',
-                  color: active ? '#fff' : 'var(--text-primary)',
-                  padding: '1rem 1rem 0.95rem',
-                  borderRadius: '18px',
+                  border: active ? '1px solid var(--primary-color)' : '1px solid var(--border-color)',
+                  background: active ? 'rgba(37,99,235,0.10)' : 'var(--card-bg)',
+                  color: active ? 'var(--primary-color)' : 'var(--text-primary)',
+                  padding: '0.72rem 0.8rem',
+                  borderRadius: '14px',
                   cursor: 'pointer',
                   fontWeight: 700,
-                  boxShadow: active ? '0 10px 24px rgba(37,99,235,0.25)' : 'none',
-                  transform: active ? 'translateY(-1px)' : 'none',
+                  boxShadow: active ? '0 4px 12px rgba(37,99,235,0.12)' : 'none',
                   transition: 'all 0.18s ease',
-                  minHeight: '92px',
                 }}
               >
-                <div style={{ fontSize: '0.78rem', letterSpacing: '0.08em', opacity: active ? 0.9 : 0.7, marginBottom: '0.4rem' }}>
-                  {active ? '선택됨' : '탭'}
-                </div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, lineHeight: 1.2 }}>{VIEW_LABELS[mode]}</div>
-                <div style={{ marginTop: '0.25rem', fontSize: '0.9rem', fontWeight: 600, opacity: active ? 0.95 : 0.82 }}>
-                  {VIEW_META[mode].subtitle}
-                </div>
-                <div style={{ marginTop: '0.35rem', fontSize: '0.82rem', opacity: active ? 0.9 : 0.72, lineHeight: 1.4 }}>
-                  {VIEW_META[mode].helper}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, lineHeight: 1.2 }}>{VIEW_LABELS[mode]}</div>
+                    <div style={{ marginTop: '0.2rem', fontSize: '0.78rem', color: active ? 'var(--primary-color)' : 'var(--text-secondary)', lineHeight: 1.35 }}>
+                      {VIEW_META[mode].subtitle}
+                    </div>
+                  </div>
+                  <span style={{
+                    flexShrink: 0,
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    padding: '0.28rem 0.5rem',
+                    borderRadius: '999px',
+                    background: active ? 'var(--primary-color)' : 'rgba(148,163,184,0.16)',
+                    color: active ? '#fff' : 'var(--text-secondary)',
+                  }}>
+                    {active ? '선택됨' : '선택'}
+                  </span>
                 </div>
               </button>
             );
           })}
         </div>
-        <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 700 }}>현재 화면</span>
-          <span style={{ padding: '0.35rem 0.65rem', borderRadius: '999px', background: 'var(--primary-color)', color: '#fff', fontWeight: 800, fontSize: '0.85rem' }}>
-            {VIEW_LABELS[view]}
-          </span>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{VIEW_META[view].subtitle}</span>
+        <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+          {VIEW_META[view].helper}
         </div>
       </section>
 
