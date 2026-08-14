@@ -158,8 +158,8 @@ export default function Home() {
 
   return (
     <div className="container">
-      <section className="card" style={{ padding: '0.65rem 0.7rem', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.18rem', padding: '0.16rem', borderRadius: '999px', background: 'rgba(148,163,184,0.10)', border: '1px solid var(--border-color)' }}>
+      <section className="card" style={{ padding: '0.55rem 0.7rem 0.45rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
           {(['buy', 'sell'] as ViewMode[]).map((mode) => {
             const active = view === mode;
             const meta = VIEW_META[mode];
@@ -170,35 +170,33 @@ export default function Home() {
                 aria-pressed={active}
                 onClick={() => setView(mode)}
                 style={{
-                  flex: 1,
-                  minWidth: 0,
+                  position: 'relative',
                   border: 'none',
-                  background: active ? '#fff' : 'transparent',
-                  color: active ? 'var(--primary-color)' : 'var(--text-secondary)',
-                  padding: '0.32rem 0.48rem',
-                  borderRadius: '999px',
+                  background: 'transparent',
+                  color: active ? '#2563eb' : 'var(--text-secondary)',
+                  padding: '0.14rem 0 0.5rem',
                   cursor: 'pointer',
-                  fontWeight: 700,
-                  boxShadow: active ? 'none' : 'none',
-                  transition: 'all 0.16s ease',
+                  fontWeight: active ? 800 : 700,
+                  transition: 'color 0.16s ease',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
-                  <div style={{ minWidth: 0, textAlign: 'left' }}>
-                    <div style={{ fontSize: '0.84rem', fontWeight: 800, lineHeight: 1.1 }}>{meta.title}</div>
-                    <div style={{ marginTop: '0.12rem', fontSize: '0.66rem', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {meta.subtitle}
-                    </div>
-                  </div>
-                  <span style={{
-                    flexShrink: 0,
-                    width: '0.4rem',
-                    height: '0.4rem',
+                <span style={{ fontSize: '0.86rem', lineHeight: 1.1 }}>{meta.title}</span>
+                <span style={{ display: 'block', marginTop: '0.1rem', fontSize: '0.66rem', lineHeight: 1.1, opacity: active ? 1 : 0.75 }}>
+                  {meta.subtitle}
+                </span>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: '-1px',
+                    height: '2px',
                     borderRadius: '999px',
-                    background: active ? 'var(--primary-color)' : 'rgba(148,163,184,0.45)',
-                    boxShadow: active ? '0 0 0 1px rgba(37,99,235,0.10)' : 'none',
-                  }} />
-                </div>
+                    background: active ? '#2563eb' : 'transparent',
+                  }}
+                />
               </button>
             );
           })}
