@@ -25,7 +25,7 @@ export async function crawlPyTicket(): Promise<CrawlResult> {
 
     $('tr').each((_, el) => {
       const rowText = $(el).text().replace(/\s+/g, '');
-      const special = rowText.includes('<<특가>>');
+      const special = rowText.includes('<<특가>>') || rowText.includes('<< 특가 >>') || rowText.includes('특가');
       if (!rowText.includes('10만원권') || rowText.includes('증정')) return;
 
       for (const { key, label } of TYPES) {
@@ -49,11 +49,13 @@ export async function crawlPyTicket(): Promise<CrawlResult> {
         const sellRateMatch = sellCell.match(/\(([\d.]+)%\)/);
         const sellRate = sellRateMatch ? parseFloat(sellRateMatch[1]) : undefined;
 
-        const prev = candidateMap.get(key);
-        const nextBuy = { price: buyPrice, rate: buyRate, special };
-        const nextSell = sellPrice && sellRate ? { price: sellPrice, rate: sellRate, special } : undefined;
+        if (special) return;
 
-        if (!prev || (special && !prev.buy?.special) || (special === prev.buy?.special && buyPrice > (prev.buy?.price || 0))) {
+        const prev = candidateMap.get(key);
+        const nextBuy = { price: buyPrice, rate: buyRate, special: false };
+        const nextSell = sellPrice && sellRate ? { price: sellPrice, rate: sellRate, special: false } : undefined;
+
+        if (!prev || buyPrice > (prev.buy?.price || 0)) {
           candidateMap.set(key, { buy: nextBuy, sell: nextSell || prev?.sell });
         } else if (nextSell) {
           candidateMap.set(key, { buy: prev.buy, sell: nextSell });
