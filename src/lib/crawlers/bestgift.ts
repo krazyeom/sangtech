@@ -29,70 +29,66 @@ export async function crawlBestgift(): Promise<CrawlResult> {
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 3000 });
     await page.goto(url, { waitUntil: 'networkidle2' });
-
-    // Wait for the elements to load (wait for any price to appear)
     await page.waitForFunction(() => document.body.innerText.includes('10만'));
 
-    // Extract text from the whole page and find the prices
-    const extractedData = await page.evaluate(() => {
-      // In Bubble, usually things are rendered in divs with text
-      // We will look for elements containing "신세계", "롯데", "현대"
-      // and their adjacent elements containing the price and rate
-      
-      const results: { type: string, buyPrice: number, rate: number }[] = [];
-      const allTextDivs = Array.from(document.querySelectorAll('div')).filter(el => {
-        return el.innerText && el.children.length === 0 && (el.innerText.includes('%') || el.innerText.includes('100,000') || el.innerText.includes('신세계') || el.innerText.includes('롯데') || el.innerText.includes('현대'));
-      });
-      
-      // We will just return the innerText of all leaf nodes and parse them in Node.js
-      return Array.from(document.querySelectorAll('*'))
-        .filter(el => el.children.length === 0 && el.textContent?.trim().length! > 0)
-        .map(el => el.textContent?.trim() || '');
-    });
+    const rows = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('*'))
+        .filter((el) => el.children.length === 0 && (el.textContent || '').trim().length > 0)
+        .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+    );
 
-    // Simple heuristical parsing of the extracted linear text
     let currentType: PriceInfo['giftCardType'] | null = null;
-    let currentAmount = 0;
+    let collecting = false;
+    let collectedPrices: number[] = [];
 
-    for (let i = 0; i < extractedData.length; i++) {
-      const text = extractedData[i];
-      if (text.includes('신세계')) currentType = 'shinsegae';
-      else if (text.includes('현대')) currentType = 'hyundai';
-      else if (text.includes('롯데')) currentType = 'lotte';
+    const flush = () => {
+      if (!currentType || collectedPrices.length === 0) return;
+      const eligible = collectedPrices.filter((price) => price > 10000 && price <= 100000);
+      if (eligible.length === 0) return;
+      const buyPrice = eligible[0];
+      const sellPrice = eligible[1] ?? undefined;
+      const buyRate = Math.round(((100000 - buyPrice) / 100000) * 10000) / 100;
+      const sellRate = sellPrice ? Math.round(((100000 - sellPrice) / 100000) * 10000) / 100 : undefined;
+      if (!prices.find((p) => p.giftCardType === currentType)) {
+        prices.push({
+          giftCardType: currentType,
+          denomination: 100000,
+          buyPrice,
+          buyRate,
+          sellPrice,
+          sellRate,
+        });
+      }
+    };
 
-      if (text.includes('100,000') || text.includes('10만')) {
-        currentAmount = 100000;
+    for (const row of rows) {
+      const text = row.replace(/\s+/g, ' ').trim();
+      const normalized = text.replace(/\s+/g, '');
+
+      let nextType: PriceInfo['giftCardType'] | null = null;
+      if (normalized.includes('롯데상품권') && normalized.includes('10만') && !normalized.includes('50만')) nextType = 'lotte';
+      else if (normalized.includes('신세계상품권') && normalized.includes('10만') && !normalized.includes('50만')) nextType = 'shinsegae';
+      else if (normalized.includes('현대상품권') && normalized.includes('10만') && !normalized.includes('50만')) nextType = 'hyundai';
+
+      if (nextType) {
+        flush();
+        currentType = nextType;
+        collecting = true;
+        collectedPrices = [];
+        continue;
       }
 
-      // If we see a percentage like "3.2%" or price like "96,500"
-      if (currentType && currentAmount === 100000) {
-         // This is a naive parsing. Since we don't know the exact structure,
-         // we might need to adjust.
-         // Let's just try to parse any 5 digit number starting with 9 as a buy price
-         const priceMatch = text.match(/^9[0-9],[0-9]{3}(원)?$/);
-         if (priceMatch) {
-            const price = parseInt(priceMatch[0].replace(/,/g, ''), 10);
-            // Look ahead for rate
-            let rate = 0;
-            for (let j = 1; j <= 3; j++) {
-               if (extractedData[i+j] && extractedData[i+j].includes('%')) {
-                  const rateMatch = extractedData[i+j].match(/([0-9.]+)%/);
-                  if (rateMatch) rate = parseFloat(rateMatch[1]);
-                  break;
-               }
-            }
-            if (!prices.find(p => p.giftCardType === currentType)) {
-               prices.push({
-                  giftCardType: currentType,
-                  denomination: 100000,
-                  buyPrice: price,
-                  buyRate: rate
-               });
-               currentType = null;
-            }
-         }
+      if (!currentType || !collecting) continue;
+      if (normalized.includes('사은품') || normalized.includes('증정') || normalized.includes('모바일') || normalized.includes('50만')) continue;
+
+      const priceMatch = text.match(/^([\d,]+)원?$/);
+      if (priceMatch) {
+        const price = parseInt(priceMatch[1].replace(/,/g, ''), 10);
+        if (price > 10000) collectedPrices.push(price);
       }
     }
+    flush();
 
   } catch (error) {
     console.error('Error crawling bestgiftcard:', error);

@@ -5,7 +5,7 @@ import iconv from 'iconv-lite';
 type PriceCandidate = {
   price: number;
   rate: number;
-  isTransfer: boolean;
+  method: 'cash' | 'transfer' | null;
 };
 
 const INVALID_PRICES = new Set([98000]);
@@ -13,6 +13,20 @@ const TRANSFER_HINTS = ['이체', '송금', '계좌이체', 'remittance', 'trans
 
 const isTransferText = (text: string) =>
   TRANSFER_HINTS.some((hint) => text.toLowerCase().includes(hint.toLowerCase()));
+
+const detectMethod = (text: string): 'cash' | 'transfer' | null => {
+  const normalized = text.toLowerCase();
+  const hasTransfer = TRANSFER_HINTS.some((hint) => normalized.includes(hint.toLowerCase()));
+  const hasCash = normalized.includes('현금');
+  if (hasTransfer && !hasCash) return 'transfer';
+  if (hasCash && !hasTransfer) return 'cash';
+  if (hasTransfer && hasCash) {
+    const transferIndex = TRANSFER_HINTS.map((hint) => normalized.indexOf(hint.toLowerCase())).filter((i) => i >= 0).sort((a, b) => a - b)[0] ?? Number.POSITIVE_INFINITY;
+    const cashIndex = normalized.indexOf('현금');
+    return transferIndex <= cashIndex ? 'transfer' : 'cash';
+  }
+  return null;
+};
 
 export const isInvalidPrice = (price: number) => INVALID_PRICES.has(price);
 
@@ -28,7 +42,7 @@ export const extractPriceCandidates = (text: string): PriceCandidate[] => {
     candidates.push({
       price,
       rate: parseFloat(match[2]),
-      isTransfer: !!match[3] && isTransferText(match[3]),
+      method: match[3] ? detectMethod(match[3]) : null,
     });
   }
 
@@ -38,7 +52,7 @@ export const extractPriceCandidates = (text: string): PriceCandidate[] => {
       candidates.push({
         price: parsed.price,
         rate: parsed.rate,
-        isTransfer: isTransferText(text),
+        method: detectMethod(text),
       });
     }
   }
@@ -46,11 +60,15 @@ export const extractPriceCandidates = (text: string): PriceCandidate[] => {
   return candidates;
 };
 
-export const pickPreferredCandidate = (candidates: PriceCandidate[]) => {
+export const pickPreferredCandidate = (
+  candidates: PriceCandidate[],
+  preferredMethod: 'cash' | 'transfer' = 'transfer'
+) => {
   if (candidates.length === 0) return null;
 
-  const transferCandidates = candidates.filter((candidate) => candidate.isTransfer);
-  const pool = transferCandidates.length > 0 ? transferCandidates : candidates;
+  const preferredCandidates = candidates.filter((candidate) => candidate.method === preferredMethod);
+  const fallbackCandidates = candidates.filter((candidate) => candidate.method === null || candidate.method !== preferredMethod);
+  const pool = preferredCandidates.length > 0 ? preferredCandidates : fallbackCandidates.length > 0 ? fallbackCandidates : candidates;
   return pool.reduce((best, current) => (current.price > best.price ? current : best));
 };
 
@@ -91,6 +109,8 @@ export async function crawlGeneric(
     encoding?: string;
     selector?: string;
     bypassTenKCheck?: boolean;
+    preferredMethod?: 'cash' | 'transfer';
+    preferredMethodByType?: Partial<Record<import('../types').PriceInfo['giftCardType'], 'cash' | 'transfer'>>;
   } = {}
 ): Promise<import('../types').CrawlResult> {
   const prices: import('../types').PriceInfo[] = [];
@@ -108,6 +128,111 @@ export async function crawlGeneric(
 
     const $ = cheerio.load(html);
     const selector = options.selector || 'tr';
+
+    const parseNums = (rowText: string) =>
+      Array.from(rowText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/g)).map((match) => ({
+        price: parseInt(match[1].replace(/,/g, ''), 10),
+        rate: parseFloat(match[2]),
+      }));
+
+    if (siteName === '마이페이') {
+      $('tr').each((_, el) => {
+        const rowText = $(el).text().replace(/\s+/g, ' ').trim();
+        const normalizedText = rowText.replace(/\s+/g, '');
+        if (!normalizedText.includes('10만') || normalizedText.includes('증정') || normalizedText.includes('제화') || normalizedText.includes('모바일')) return;
+
+        let type: import('../types').PriceInfo['giftCardType'] | null = null;
+        if (normalizedText.includes('신세계')) type = 'shinsegae';
+        else if (normalizedText.includes('현대')) type = 'hyundai';
+        else if (normalizedText.includes('롯데')) type = 'lotte';
+        if (!type) return;
+
+        const numbers = parseNums(rowText);
+        if (numbers.length < 3) return;
+
+        const buyCandidate = numbers[0];
+        const sellCandidate = numbers[2];
+
+        if (buyCandidate.price > 10000 && !prices.find((p) => p.giftCardType === type)) {
+          prices.push({
+            giftCardType: type,
+            denomination: 100000,
+            buyPrice: buyCandidate.price,
+            buyRate: buyCandidate.rate,
+            sellPrice: sellCandidate?.price,
+            sellRate: sellCandidate?.rate,
+          });
+        }
+      });
+
+      return {
+        siteName,
+        siteUrl: url,
+        timestamp: new Date(),
+        prices,
+      };
+    }
+
+    if (siteName === '기프너스(잠실)') {
+      let puppeteer;
+      try {
+        puppeteer = (await import(/* webpackIgnore: true */ 'puppeteer')).default;
+      } catch {
+        return {
+          siteName,
+          siteUrl: url,
+          timestamp: new Date(),
+          prices,
+        };
+      }
+
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors'],
+      });
+      try {
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+        const bodyText = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
+        const pairs = Array.from(bodyText.matchAll(/([\d,]+)\s*\(([\d.]+)%\)/g)).map((m) => ({
+          price: parseInt(m[1].replace(/,/g, ''), 10),
+          rate: parseFloat(m[2]),
+          index: m.index ?? 0,
+        }));
+        const brandTokens: Array<[import('../types').PriceInfo['giftCardType'], string, number, number]> = [
+          ['lotte', '롯데', 1, 2],
+          ['shinsegae', '신세계', 1, 2],
+          ['hyundai', '현대', 1, 2],
+        ];
+
+        for (const [type, brand, buyPairIndex, sellPairIndex] of brandTokens) {
+          const brandIndex = bodyText.indexOf(brand);
+          if (brandIndex === -1) continue;
+          const typedPairs = pairs.filter((pair) => pair.index > brandIndex).slice(0, 4);
+          const buy = typedPairs[buyPairIndex];
+          const sell = typedPairs[sellPairIndex];
+          if (buy && buy.price > 10000) {
+            prices.push({
+              giftCardType: type,
+              denomination: 100000,
+              buyPrice: buy.price,
+              buyRate: buy.rate,
+              sellPrice: sell?.price,
+              sellRate: sell?.rate,
+            });
+          }
+        }
+      } finally {
+        await browser.close();
+      }
+
+      return {
+        siteName,
+        siteUrl: url,
+        timestamp: new Date(),
+        prices,
+      };
+    }
 
     $(selector).each((_, el) => {
       const text = $(el).text().trim();
@@ -151,10 +276,6 @@ export async function crawlGeneric(
       });
       if (rowCandidates.length > 0) {
         const sorted = [...rowCandidates].sort((a, b) => a.price - b.price);
-        if (buyPrice === 0) {
-          buyPrice = sorted[0].price;
-          buyRate = sorted[0].rate;
-        }
         if (sellPrice === 0) {
           const sellCandidate = [...sorted].reverse().find((candidate) => candidate.price !== buyPrice) || sorted[sorted.length - 1];
           sellPrice = sellCandidate.price;
@@ -182,32 +303,39 @@ export async function crawlGeneric(
         if (type) {
           // 텍스트에서 찾기
           if (buyPrice === 0) {
-            let bestPriceInFirstTd = 0;
-            let bestRateInFirstTd = 0;
-            let foundPriceColumn = false;
+            const preferredMethod = options.preferredMethodByType?.[type] ?? options.preferredMethod ?? 'transfer';
+            const preferredCandidate = pickPreferredCandidate(rowCandidates, preferredMethod);
+            if (preferredCandidate) {
+              buyPrice = preferredCandidate.price;
+              buyRate = preferredCandidate.rate;
+            } else {
+              let bestPriceInFirstTd = 0;
+              let bestRateInFirstTd = 0;
+              let foundPriceColumn = false;
 
-            $(el).find('td').each((_, td) => {
-              if (foundPriceColumn) return;
+              $(el).find('td').each((_, td) => {
+                if (foundPriceColumn) return;
 
-              const tdText = $(td).text();
-              const localPrices = extractPriceCandidates(tdText).filter(
-                (p) => p.price > 10000 && p.price <= 100000
-              );
+                const tdText = $(td).text();
+                const localPrices = extractPriceCandidates(tdText).filter(
+                  (p) => p.price > 10000 && p.price <= 100000
+                );
 
-              if (localPrices.length > 0) {
-                foundPriceColumn = true; // Stop searching subsequent tds in this row
-                const preferred = pickPreferredCandidate(localPrices);
+                if (localPrices.length > 0) {
+                  foundPriceColumn = true; // Stop searching subsequent tds in this row
+                  const preferred = pickPreferredCandidate(localPrices, preferredMethod);
 
-                if (preferred && preferred.price > bestPriceInFirstTd) {
-                  bestPriceInFirstTd = preferred.price;
-                  bestRateInFirstTd = preferred.rate;
+                  if (preferred && preferred.price > bestPriceInFirstTd) {
+                    bestPriceInFirstTd = preferred.price;
+                    bestRateInFirstTd = preferred.rate;
+                  }
                 }
-              }
-            });
+              });
 
-            if (bestPriceInFirstTd > 0) {
-              buyPrice = bestPriceInFirstTd;
-              buyRate = bestRateInFirstTd;
+              if (bestPriceInFirstTd > 0) {
+                buyPrice = bestPriceInFirstTd;
+                buyRate = bestRateInFirstTd;
+              }
             }
           }
 
