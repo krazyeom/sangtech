@@ -11,6 +11,8 @@ interface PriceData {
   denomination: number;
   buy_price: number;
   buy_rate: number;
+  sell_price?: number | null;
+  sell_rate?: number | null;
 }
 
 const GIFT_CARD_NAMES = {
@@ -69,6 +71,12 @@ export default function Home() {
     shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
     lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
     hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
+  };
+
+  const sellBestPrices = {
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
   };
 
   // 렌더링용 사이트 목록 추출
@@ -154,6 +162,16 @@ export default function Home() {
             }
             return prev;
           });
+          const bestSell = typePrices.reduce((prev, curr) => {
+            const prevSell = prev.sell_price ?? 0;
+            const currSell = curr.sell_price ?? 0;
+            if (currSell > prevSell) return curr;
+            if (currSell === prevSell) {
+              if (curr.site_name === '하이티켓') return curr;
+              if (prev.site_name === '하이티켓') return prev;
+            }
+            return prev;
+          });
 
           return (
             <div className="card" key={type}>
@@ -161,7 +179,15 @@ export default function Home() {
               <div className="card-content">
                 <div>
                   <div className="best-price">{best.buy_price.toLocaleString()}원</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{best.buy_rate}% 할인율</div>
+                  <div style={{ color: 'var(--text-secondary)' }}>매입가 · {best.buy_rate}% 할인율</div>
+                  {typeof best.sell_price === 'number' && (
+                    <div style={{ marginTop: '0.35rem', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      판매가 {best.sell_price.toLocaleString()}원
+                      <span style={{ marginLeft: '0.35rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                        ({best.sell_rate ?? '-'}%)
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="best-site">
                   <a href={best.site_url} target="_blank" rel="noreferrer" className="site-link">
@@ -214,20 +240,33 @@ export default function Home() {
                   {(['lotte', 'shinsegae', 'hyundai'] as const).map(type => {
                     const priceData = siteDataMap[site][type];
                     const isBest = priceData && priceData.buy_price === bestPrices[type];
+                    const isBestSell = priceData && typeof priceData.sell_price === 'number' && priceData.sell_price === sellBestPrices[type];
                     
                     return (
                       <td key={type} className={isBest ? 'highlight price-cell' : 'price-cell'}>
                         {priceData ? (
                           <>
-                            <span className="price-value">{priceData.buy_price.toLocaleString()}원</span>
-                            <span className="price-rate">
-                              ({priceData.buy_rate}%)
-                              {!isBest && (() => {
-                                const diff = priceData.buy_price - bestPrices[type];
-                                const color = diff > 0 ? '#ef4444' : '#3b82f6';
-                                return <span style={{ color }}>({diff.toLocaleString()})</span>;
-                              })()}
-                            </span>
+                            <div>
+                              <span className="price-value">{priceData.buy_price.toLocaleString()}원</span>
+                              <span className="price-rate">
+                                ({priceData.buy_rate}%)
+                                {!isBest && (() => {
+                                  const diff = priceData.buy_price - bestPrices[type];
+                                  const color = diff > 0 ? '#ef4444' : '#3b82f6';
+                                  return <span style={{ color }}>({diff.toLocaleString()})</span>;
+                                })()}
+                              </span>
+                            </div>
+                            {typeof priceData.sell_price === 'number' ? (
+                              <div style={{ marginTop: '0.25rem' }}>
+                                <span className="price-value" style={{ fontSize: '0.92rem', color: isBestSell ? 'var(--primary-color)' : 'var(--text-secondary)' }}>
+                                  {priceData.sell_price.toLocaleString()}원
+                                </span>
+                                <span className="price-rate" style={{ fontSize: '0.82rem' }}>
+                                  ({priceData.sell_rate}%)
+                                </span>
+                              </div>
+                            ) : null}
                           </>
                         ) : (
                           <span style={{ color: 'var(--text-secondary)' }}>-</span>
