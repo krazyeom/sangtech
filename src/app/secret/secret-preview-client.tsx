@@ -167,8 +167,33 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
             </div>
           )}
         </div>
+      </section>
 
-        <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
+      <section className="card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+          {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map((type) => {
+            const best = bestPrices[type];
+            return (
+              <div key={type} style={{ padding: '1rem', borderRadius: '16px', background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>{GIFT_CARD_NAMES[type]}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{best > 0 ? `${best.toLocaleString()}원` : '-'}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                  {view === 'buy' ? '매입가 기준 최고가' : '판매가 데이터가 있는 경우만 표시'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {view === 'sell' && !hasSellData && (
+          <div style={{ marginTop: '1rem', padding: '0.9rem 1rem', borderRadius: '12px', background: 'rgba(239,68,68,0.08)', color: '#ef4444', lineHeight: 1.6 }}>
+            아직 판매가 데이터가 들어오지 않았습니다. 이 탭은 레이아웃 확인용 비밀 미리보기로 먼저 열어두었습니다.
+          </div>
+        )}
+      </section>
+
+      <section className="card" style={{ padding: '0.45rem 0.7rem 0.4rem', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
           {(['buy', 'sell'] as ViewMode[]).map((mode) => {
             const active = view === mode;
             return (
@@ -209,32 +234,6 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
             );
           })}
         </div>
-        <div style={{ marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
-          {VIEW_META[view].helper}
-        </div>
-      </section>
-
-      <section className="card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-          {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map((type) => {
-            const best = bestPrices[type];
-            return (
-              <div key={type} style={{ padding: '1rem', borderRadius: '16px', background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>{GIFT_CARD_NAMES[type]}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{best > 0 ? `${best.toLocaleString()}원` : '-'}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                  {view === 'buy' ? '매입가 기준 최고가' : '판매가 데이터가 있는 경우만 표시'}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {view === 'sell' && !hasSellData && (
-          <div style={{ marginTop: '1rem', padding: '0.9rem 1rem', borderRadius: '12px', background: 'rgba(239,68,68,0.08)', color: '#ef4444', lineHeight: 1.6 }}>
-            아직 판매가 데이터가 들어오지 않았습니다. 이 탭은 레이아웃 확인용 비밀 미리보기로 먼저 열어두었습니다.
-          </div>
-        )}
       </section>
 
       <section className="table-container">

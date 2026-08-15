@@ -158,54 +158,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      <section className="card" style={{ padding: '0.55rem 0.7rem 0.45rem', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', gap: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
-          {(['buy', 'sell'] as ViewMode[]).map((mode) => {
-            const active = view === mode;
-            const meta = VIEW_META[mode];
-            return (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setView(mode)}
-                style={{
-                  position: 'relative',
-                  border: 'none',
-                  background: 'transparent',
-                  color: active ? '#2563eb' : 'var(--text-secondary)',
-                  padding: '0.14rem 0 0.5rem',
-                  cursor: 'pointer',
-                  fontWeight: active ? 800 : 700,
-                  transition: 'color 0.16s ease',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span style={{ fontSize: '0.86rem', lineHeight: 1.1 }}>{meta.title}</span>
-                <span style={{ display: 'block', marginTop: '0.1rem', fontSize: '0.66rem', lineHeight: 1.1, opacity: active ? 1 : 0.75 }}>
-                  {meta.subtitle}
-                </span>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: '-1px',
-                    height: '2px',
-                    borderRadius: '999px',
-                    background: active ? '#2563eb' : 'transparent',
-                  }}
-                />
-              </button>
-            );
-          })}
-        </div>
-        <div style={{ marginTop: '0.35rem', fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
-          {VIEW_META[view].helper}
-        </div>
-      </section>
-
       <section className="best-cards">
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => {
           const typePrices = prices.filter(p => p.gift_card_type === type && !isExcludedCompareSite(p.site_name));
@@ -259,13 +211,60 @@ export default function Home() {
         })}
       </section>
 
+      <section className="card" style={{ padding: '0.45rem 0.7rem 0.4rem', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
+            {(['buy', 'sell'] as ViewMode[]).map((mode) => {
+              const active = view === mode;
+              const meta = VIEW_META[mode];
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setView(mode)}
+                  style={{
+                    position: 'relative',
+                    border: 'none',
+                    background: 'transparent',
+                    color: active ? '#2563eb' : 'var(--text-secondary)',
+                    padding: '0.14rem 0 0.5rem',
+                    cursor: 'pointer',
+                    fontWeight: active ? 800 : 700,
+                    transition: 'color 0.16s ease',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <span style={{ fontSize: '0.86rem', lineHeight: 1.1 }}>{meta.title}</span>
+                  <span style={{ display: 'block', marginTop: '0.1rem', fontSize: '0.66rem', lineHeight: 1.1, opacity: active ? 1 : 0.75 }}>
+                    {meta.subtitle}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: '-1px',
+                      height: '2px',
+                      borderRadius: '999px',
+                      background: active ? '#2563eb' : 'transparent',
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.5, textAlign: 'right', maxWidth: '560px' }}>
+            * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
+          </div>
+        </div>
+      </section>
+
       {lastUpdate && (
         <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: isUpdateDelayed ? '#ef4444' : 'var(--text-secondary)' }}>
           마지막 업데이트: {lastUpdate} (총 {siteNames.length}개 업체 지원)
           {isUpdateDelayed && <span style={{ marginLeft: '6px', fontWeight: 'bold' }}>⚠️ 5분 이상 경과 (시세 지연)</span>}
-          <div style={{ marginTop: '0.35rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.5 }}>
-            * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
-          </div>
         </div>
       )}
 
