@@ -14,6 +14,7 @@ import { crawlDream } from './dream';
 import { crawlWoorigift } from './woorigift';
 import { crawlTicketstore } from './ticketstore';
 import { crawlBestgift } from './bestgift';
+import { crawlMeee } from './meee';
 import { crawlWooh } from './wooh';
 
 export async function crawlAll(): Promise<CrawlResult[]> {
@@ -29,7 +30,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '우천상품권', fn: crawlWooticket },
     { name: '의리상품권', fn: crawlUticket },
     { name: '기프너스(잠실)', fn: () => crawlGeneric('https://www.gifnus.co.kr', '기프너스(잠실)', { bypassTenKCheck: true, preferredMethod: 'cash' }) },
-    { name: '미래상품권', fn: () => crawlGeneric('https://meee.co.kr/', '미래상품권', { bypassTenKCheck: true }) },
+    { name: '미래상품권', fn: crawlMeee },
     { name: '중앙상품권', fn: () => crawlGeneric('https://centralgift.imweb.me/', '중앙상품권') },
     { name: '회현상품권', fn: () => crawlGeneric('https://www.hhvip.co.kr/', '회현상품권') },
     { name: '고고상품권', fn: crawlGogoExchange },
