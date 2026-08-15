@@ -258,7 +258,7 @@ export default function Home() {
             );
           })}
         </div>
-        <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '0.68rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.45, textAlign: 'right', paddingTop: '0.14rem' }}>
+        <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '0.68rem', color: isUpdateDelayed ? '#ef4444' : '#ffffff', fontWeight: 600, lineHeight: 1.45, textAlign: 'right', paddingTop: '0.14rem' }}>
           마지막 업데이트: {lastUpdate ? lastUpdate : '로딩 중'}
           {isUpdateDelayed && <span style={{ marginLeft: '6px', fontWeight: 'bold' }}>⚠️ 5분 이상 경과 (시세 지연)</span>}
         </div>

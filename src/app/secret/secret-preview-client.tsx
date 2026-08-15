@@ -161,9 +161,9 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
             </p>
           </div>
           {lastUpdate && (
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+            <div style={{ fontSize: '0.85rem', color: '#ffffff', textAlign: 'right' }}>
               마지막 업데이트<br />
-              <strong style={{ color: 'var(--text-primary)' }}>{lastUpdate}</strong>
+              <strong style={{ color: '#ffffff' }}>{lastUpdate}</strong>
             </div>
           )}
         </div>
