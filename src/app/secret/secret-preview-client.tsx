@@ -192,47 +192,49 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
         )}
       </section>
 
-      <section className="card" style={{ padding: '0.45rem 0.7rem 0.4rem', marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
-          {(['buy', 'sell'] as ViewMode[]).map((mode) => {
-            const active = view === mode;
-            return (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setView(mode)}
-                style={{
-                  position: 'relative',
-                  border: 'none',
-                  background: 'transparent',
-                  color: active ? '#2563eb' : 'var(--text-secondary)',
-                  padding: '0.14rem 0 0.5rem',
-                  cursor: 'pointer',
-                  fontWeight: active ? 800 : 700,
-                  transition: 'color 0.16s ease',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span style={{ fontSize: '0.86rem', lineHeight: 1.1 }}>{VIEW_LABELS[mode]}</span>
-                <span style={{ display: 'block', marginTop: '0.1rem', fontSize: '0.66rem', lineHeight: 1.1, opacity: active ? 1 : 0.75 }}>
-                  {VIEW_META[mode].subtitle}
-                </span>
-                <span
-                  aria-hidden="true"
+      <section className="card" style={{ padding: '0.35rem 0.7rem 0.3rem', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.85rem', borderBottom: '1px solid var(--border-color)', flex: '0 0 auto' }}>
+            {(['buy', 'sell'] as ViewMode[]).map((mode) => {
+              const active = view === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setView(mode)}
                   style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: '-1px',
-                    height: '2px',
-                    borderRadius: '999px',
-                    background: active ? '#2563eb' : 'transparent',
+                    position: 'relative',
+                    border: 'none',
+                    background: 'transparent',
+                    color: active ? '#2563eb' : 'var(--text-secondary)',
+                    padding: '0.1rem 0 0.34rem',
+                    cursor: 'pointer',
+                    fontWeight: active ? 800 : 700,
+                    transition: 'color 0.16s ease',
+                    whiteSpace: 'nowrap',
                   }}
-                />
-              </button>
-            );
-          })}
+                >
+                  <span style={{ fontSize: '0.81rem', lineHeight: 1.05 }}>{VIEW_LABELS[mode]}</span>
+                  <span style={{ display: 'block', marginTop: '0.06rem', fontSize: '0.61rem', lineHeight: 1.05, opacity: active ? 1 : 0.7 }}>
+                    {VIEW_META[mode].subtitle}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: '-1px',
+                      height: '2px',
+                      borderRadius: '999px',
+                      background: active ? '#2563eb' : 'transparent',
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 

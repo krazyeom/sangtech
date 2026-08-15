@@ -211,9 +211,9 @@ export default function Home() {
         })}
       </section>
 
-      <section className="card" style={{ padding: '0.45rem 0.7rem 0.4rem', marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: '1.25rem', borderBottom: '1px solid var(--border-color)' }}>
+      <section className="card" style={{ padding: '0.35rem 0.7rem 0.3rem', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.85rem', borderBottom: '1px solid var(--border-color)', flex: '0 0 auto' }}>
             {(['buy', 'sell'] as ViewMode[]).map((mode) => {
               const active = view === mode;
               const meta = VIEW_META[mode];
@@ -228,15 +228,15 @@ export default function Home() {
                     border: 'none',
                     background: 'transparent',
                     color: active ? '#2563eb' : 'var(--text-secondary)',
-                    padding: '0.14rem 0 0.5rem',
+                    padding: '0.1rem 0 0.34rem',
                     cursor: 'pointer',
                     fontWeight: active ? 800 : 700,
                     transition: 'color 0.16s ease',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  <span style={{ fontSize: '0.86rem', lineHeight: 1.1 }}>{meta.title}</span>
-                  <span style={{ display: 'block', marginTop: '0.1rem', fontSize: '0.66rem', lineHeight: 1.1, opacity: active ? 1 : 0.75 }}>
+                  <span style={{ fontSize: '0.81rem', lineHeight: 1.05 }}>{meta.title}</span>
+                  <span style={{ display: 'block', marginTop: '0.06rem', fontSize: '0.61rem', lineHeight: 1.05, opacity: active ? 1 : 0.7 }}>
                     {meta.subtitle}
                   </span>
                   <span
@@ -255,7 +255,7 @@ export default function Home() {
               );
             })}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.5, textAlign: 'right', maxWidth: '560px' }}>
+          <div style={{ fontSize: '0.68rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.45, textAlign: 'right', maxWidth: '560px' }}>
             * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
           </div>
         </div>
