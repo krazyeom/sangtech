@@ -211,7 +211,7 @@ export default function Home() {
         })}
       </section>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.85rem', flexWrap: 'nowrap', marginBottom: '0.45rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.85rem', flexWrap: 'nowrap', marginBottom: '0.3rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', flex: '0 0 auto', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.1rem' }}>
           {(['buy', 'sell'] as ViewMode[]).map((mode) => {
             const active = view === mode;
@@ -256,16 +256,13 @@ export default function Home() {
           })}
         </div>
         <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '0.68rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.45, textAlign: 'right', paddingTop: '0.14rem' }}>
-          * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
-        </div>
-      </div>
-
-      {lastUpdate && (
-        <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: isUpdateDelayed ? '#ef4444' : 'var(--text-secondary)' }}>
-          마지막 업데이트: {lastUpdate} (총 {siteNames.length}개 업체 지원)
+          마지막 업데이트: {lastUpdate ? lastUpdate : '로딩 중'}
           {isUpdateDelayed && <span style={{ marginLeft: '6px', fontWeight: 'bold' }}>⚠️ 5분 이상 경과 (시세 지연)</span>}
         </div>
-      )}
+      </div>
+      <div style={{ fontSize: '0.68rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.45, textAlign: 'left', marginBottom: '0.75rem' }}>
+        * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
+      </div>
 
       <section className="table-container">
         <table>
