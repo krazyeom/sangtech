@@ -212,53 +212,55 @@ export default function Home() {
       </section>
 
       <section className="card" style={{ padding: '0.35rem 0.7rem 0.3rem', marginBottom: '0.45rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '0.85rem', flexWrap: 'wrap' }}>
-          {(['buy', 'sell'] as ViewMode[]).map((mode) => {
-            const active = view === mode;
-            const meta = VIEW_META[mode];
-            return (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setView(mode)}
-                style={{
-                  position: 'relative',
-                  border: 'none',
-                  background: 'transparent',
-                  color: active ? '#2563eb' : 'var(--text-secondary)',
-                  padding: '0.1rem 0 0.34rem',
-                  cursor: 'pointer',
-                  fontWeight: active ? 800 : 700,
-                  transition: 'color 0.16s ease',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span style={{ fontSize: '0.81rem', lineHeight: 1.05 }}>{meta.title}</span>
-                <span style={{ display: 'block', marginTop: '0.06rem', fontSize: '0.61rem', lineHeight: 1.05, opacity: active ? 1 : 0.7 }}>
-                  {meta.subtitle}
-                </span>
-                <span
-                  aria-hidden="true"
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'nowrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', flex: '0 0 auto', borderBottom: '1px solid var(--border-color)' }}>
+            {(['buy', 'sell'] as ViewMode[]).map((mode) => {
+              const active = view === mode;
+              const meta = VIEW_META[mode];
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setView(mode)}
                   style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: '-1px',
-                    height: '2px',
-                    borderRadius: '999px',
-                    background: active ? '#2563eb' : 'transparent',
+                    position: 'relative',
+                    border: 'none',
+                    background: 'transparent',
+                    color: active ? '#2563eb' : 'var(--text-secondary)',
+                    padding: '0.1rem 0 0.34rem',
+                    cursor: 'pointer',
+                    fontWeight: active ? 800 : 700,
+                    transition: 'color 0.16s ease',
+                    whiteSpace: 'nowrap',
+                    flex: '0 0 auto',
                   }}
-                />
-              </button>
-            );
-          })}
+                >
+                  <span style={{ fontSize: '0.81rem', lineHeight: 1.05 }}>{meta.title}</span>
+                  <span style={{ display: 'block', marginTop: '0.06rem', fontSize: '0.61rem', lineHeight: 1.05, opacity: active ? 1 : 0.7 }}>
+                    {meta.subtitle}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: '-1px',
+                      height: '2px',
+                      borderRadius: '999px',
+                      background: active ? '#2563eb' : 'transparent',
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '0.68rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.45, textAlign: 'right' }}>
+            * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
+          </div>
         </div>
       </section>
-
-      <div style={{ fontSize: '0.68rem', color: '#ef4444', fontWeight: 600, lineHeight: 1.45, textAlign: 'right', maxWidth: '560px', marginBottom: '0.75rem' }}>
-        * 주의 * 상품권 특성상 실시간으로 시세가 변동될 수 있으며, 가격을 가져오는 과정에서 오류가 발생할 수 있으니 방문 직전 반드시 각 사이트에서 최종적으로 다시 확인하시기 바랍니다. 문제 발생 시 상품권 업체와 SangTech는 책임지지 않으며, 전적으로 판매 당사자의 책임입니다.
-      </div>
 
       {lastUpdate && (
         <div style={{ textAlign: 'right', marginBottom: '0.8rem', fontSize: '0.85rem', color: isUpdateDelayed ? '#ef4444' : 'var(--text-secondary)' }}>
