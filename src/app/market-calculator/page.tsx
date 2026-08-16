@@ -253,7 +253,7 @@ export default function Calculator() {
         <div style={{ height: '1px', background: 'var(--border-color)', margin: '1rem 0' }}></div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '1.2rem' }}>최종 매입가</span>
+          <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '1.2rem', paddingLeft: '0.2rem' }}>최종 매입가</span>
           <span style={{ fontWeight: '800', color: 'var(--primary-color)', fontSize: '1.5rem' }}>{Math.round(totalPayout).toLocaleString()} 원</span>
         </div>
       </div>
