@@ -21,7 +21,7 @@ const GIFT_CARD_NAMES = {
   hyundai: '현대 상품권'
 };
 
-const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권'];
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권', '더세일상품권'];
 
 const isExcludedCompareSite = (siteName: string) =>
   EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
@@ -280,7 +280,16 @@ export default function Home() {
                 ? 'https://bestgiftcard.kr/' 
                 : (siteDataMap[site]['shinsegae']?.site_url || siteDataMap[site]['lotte']?.site_url || siteDataMap[site]['hyundai']?.site_url);
               return (
-                <tr key={site} className={site === '맥스솔루션(안양)' ? 'row-maxsolution' : site === '도전상품권(삼성)' ? 'row-dojeon' : ''}>
+                <tr
+                  key={site}
+                  className={site === '맥스솔루션(안양)'
+                    ? 'row-maxsolution'
+                    : site === '도전상품권(삼성)'
+                      ? 'row-dojeon'
+                      : site === '더세일상품권(삼성동)'
+                        ? 'row-thesale'
+                        : ''}
+                >
                   <td>
                     <a 
                       href={url} 

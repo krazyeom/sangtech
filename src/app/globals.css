@@ -159,6 +159,14 @@ tbody tr:hover {
   background-color: rgba(16, 185, 129, 0.15) !important;
 }
 
+.row-thesale {
+  background-color: rgba(59, 130, 246, 0.08) !important; /* 삼성동 더세일 전용 톤 */
+}
+
+.row-thesale:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
 tbody tr:last-child td {
   border-bottom: none;
 }

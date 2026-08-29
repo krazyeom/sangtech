@@ -42,6 +42,7 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '행복상품권', fn: crawlWoorigift },
     { name: '맥스솔루션(안양)', fn: crawlTicketstore },
     { name: '우현상품권', fn: crawlWooh },
+    { name: '더세일상품권(삼성동)', fn: () => crawlGeneric('https://thesaletk.cafe24.com', '더세일상품권(삼성동)') },
     { name: '베스트상품권', fn: crawlBestgift },
   ];
 
