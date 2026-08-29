@@ -286,7 +286,7 @@ export default function Home() {
                     ? 'row-maxsolution'
                     : site === '도전상품권(삼성)'
                       ? 'row-dojeon'
-                      : site === '더세일상품권(삼성동)'
+                      : site === '더세일상품권(삼성)'
                         ? 'row-thesale'
                         : ''}
                 >
