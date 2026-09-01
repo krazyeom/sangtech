@@ -12,36 +12,36 @@ export async function crawlUticket(): Promise<CrawlResult | null> {
     });
 
     const html = response.data;
-    const match = html.match(/\\?\"giftCards\\?\":(\[.*?\])/);
-    if (!match) return null;
+    const marker = '\\"giftCards\\":[';
+    const markerIndex = html.indexOf(marker);
+    if (markerIndex === -1) return null;
+
+    const start = html.indexOf('[', markerIndex);
+    if (start === -1) return null;
+
+    let bracketCount = 0;
+    let end = -1;
+    for (let i = start; i < html.length; i++) {
+      if (html[i] === '[') bracketCount++;
+      else if (html[i] === ']') bracketCount--;
+      if (bracketCount === 0) {
+        end = i + 1;
+        break;
+      }
+    }
+
+    if (end === -1) return null;
 
     let giftCards;
     try {
-      const jsonStr = match[1].replace(/\\\"/g, '"');
-      giftCards = JSON.parse(jsonStr);
-    } catch (e) {
-      const start = html.indexOf('"giftCards":') + 12;
-      let bracketCount = 0;
-      let end = start;
-      for (let i = start; i < html.length; i++) {
-        if (html[i] === '[') bracketCount++;
-        else if (html[i] === ']') bracketCount--;
-        if (bracketCount === 0 && html[i] === ']') {
-          end = i + 1;
-          break;
-        }
-      }
-      const cleanJson = html
+      const jsonStr = html
         .substring(start, end)
-        .replace(/\\"/g, '"')
-        .replace(/\\n/g, '')
-        .replaceAll('\\', '');
-      try {
-        giftCards = JSON.parse(cleanJson);
-      } catch (err) {
-        console.error('Uticket JSON parse error:', err);
-        return null;
-      }
+        .replace(/\\\\/g, '\\')
+        .replace(/\\"/g, '"');
+      giftCards = JSON.parse(jsonStr);
+    } catch (err) {
+      console.error('Uticket JSON parse error:', err);
+      return null;
     }
 
     const prices: PriceInfo[] = [];

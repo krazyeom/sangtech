@@ -25,7 +25,7 @@ const BUYBACK_PRICE_OPTIONS = Array.from({ length: 401 }, (_, i) => {
 
 const FACE_VALUE = 100000;
 
-const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '기프너스', 'VIP상품권', '더세일상품권'];
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권', '더세일상품권'];
 
 const isExcludedCompareSite = (siteName: string) =>
   EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));

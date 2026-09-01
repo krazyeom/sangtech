@@ -16,7 +16,6 @@ import { crawlTicketstore } from './ticketstore';
 import { crawlBestgift } from './bestgift';
 import { crawlMeee } from './meee';
 import { crawlWooh } from './wooh';
-import { crawlThesale } from './thesale';
 
 export async function crawlAll(): Promise<CrawlResult[]> {
   const results: CrawlResult[] = [];
@@ -43,7 +42,6 @@ export async function crawlAll(): Promise<CrawlResult[]> {
     { name: '행복상품권', fn: crawlWoorigift },
     { name: '맥스솔루션(안양)', fn: crawlTicketstore },
     { name: '우현상품권', fn: crawlWooh },
-    { name: '더세일상품권(삼성)', fn: crawlThesale },
     { name: '베스트상품권', fn: crawlBestgift },
   ];
 

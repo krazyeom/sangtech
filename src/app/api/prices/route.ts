@@ -12,6 +12,7 @@ export async function GET() {
 
     const { data: prices, error } = await client.from('prices')
       .select('*')
+      .not('site_name', 'ilike', '%더세일상품권%')
       .order('gift_card_type', { ascending: true })
       .order('buy_price', { ascending: false });
 

@@ -31,6 +31,11 @@ const QUANTITY_OPTIONS = Array.from({ length: 101 }, (_, i) => ({
   label: i.toString()
 }));
 
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권', '더세일상품권'];
+
+const isExcludedCompareSite = (siteName: string) =>
+  EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
+
 export default function Calculator() {
   const [prices, setPrices] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,18 +71,18 @@ export default function Calculator() {
   };
 
   const recommendedBestPrices = {
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권') && !p.site_name.includes('더세일상품권')).map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권') && !p.site_name.includes('더세일상품권')).map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !p.site_name.includes('맥스솔루션') && !p.site_name.includes('기프너스') && !p.site_name.includes('VIP상품권') && !p.site_name.includes('더세일상품권')).map(p => p.buy_price), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name)).map(p => p.buy_price), 0),
   };
 
-  let siteNames = Array.from(new Set(prices.map(p => p.site_name)));
+  let siteNames = Array.from(new Set(prices.map(p => p.site_name))).filter((site) => !isExcludedCompareSite(site));
   const siteBestCount: Record<string, number> = {};
   const siteSumPrice: Record<string, number> = {};
 
   prices.forEach(p => {
     siteSumPrice[p.site_name] = (siteSumPrice[p.site_name] || 0) + p.buy_price;
-    if (p.site_name.includes('맥스솔루션') || p.site_name.includes('기프너스') || p.site_name.includes('VIP상품권') || p.site_name.includes('더세일상품권')) return;
+    if (isExcludedCompareSite(p.site_name)) return;
     const type = p.gift_card_type as keyof typeof bestPrices;
     if (p.buy_price === bestPrices[type] || p.buy_price === recommendedBestPrices[type]) {
       siteBestCount[p.site_name] = (siteBestCount[p.site_name] || 0) + 1;

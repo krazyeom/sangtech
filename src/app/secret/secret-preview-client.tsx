@@ -26,7 +26,7 @@ const GIFT_CARD_NAMES = {
   hyundai: '현대 상품권',
 } as const;
 
-const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '기프너스', 'VIP상품권', '더세일상품권'];
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권', '더세일상품권'];
 
 const isExcludedCompareSite = (siteName: string) =>
   EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
@@ -89,7 +89,7 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
   const bestPrices = view === 'buy' ? buyBestPrices : sellBestPrices;
 
   const siteNames = useMemo(() => {
-    const names = Array.from(new Set(prices.map((p) => p.site_name)));
+    const names = Array.from(new Set(prices.map((p) => p.site_name))).filter((site) => !isExcludedCompareSite(site));
     const siteBestCount: Record<string, number> = {};
     const siteComparableSumPrice: Record<string, number> = {};
 

@@ -21,7 +21,7 @@ const GIFT_CARD_NAMES = {
   hyundai: '현대 상품권'
 };
 
-const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '기프너스', 'VIP상품권', '더세일상품권'];
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권', '더세일상품권'];
 
 const isExcludedCompareSite = (siteName: string) =>
   EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
@@ -93,7 +93,7 @@ export default function Home() {
   const activeBestPrices = view === 'buy' ? bestPrices : sellBestPrices;
 
   // 렌더링용 사이트 목록 추출
-  let siteNames = Array.from(new Set(prices.map(p => p.site_name)));
+  let siteNames = Array.from(new Set(prices.map(p => p.site_name))).filter((site) => !isExcludedCompareSite(site));
 
   // 각 사이트별로 전체 상품권 중 베스트 가격을 몇 개나 가지고 있는지 카운트, 그리고 3종류 총합 계산
   const siteBestCount: Record<string, number> = {};
