@@ -26,7 +26,7 @@ const GIFT_CARD_NAMES = {
   hyundai: '현대 상품권',
 } as const;
 
-const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '도전상품권', '기프너스', 'VIP상품권'];
+const EXCLUDED_COMPARE_SITES = ['맥스솔루션', '기프너스', 'VIP상품권', '더세일상품권'];
 
 const isExcludedCompareSite = (siteName: string) =>
   EXCLUDED_COMPARE_SITES.some((excluded) => siteName.includes(excluded));
