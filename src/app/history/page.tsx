@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,25 +32,44 @@ const GIFT_CARD_NAMES = {
 export default function History() {
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  const fetchHistory = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/history?type=all&days=30&t=${Date.now()}`, {
+        cache: 'no-store',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHistoryData(data.history);
+        setLastUpdated(new Date().toLocaleString('ko-KR'));
+      }
+    } catch (err) {
+      console.error('Failed to fetch history', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/history?type=all&days=30`);
-        const data = await res.json();
-        if (data.success) {
-          setHistoryData(data.history);
-        }
-      } catch (err) {
-        console.error('Failed to fetch history', err);
-      } finally {
-        setLoading(false);
-      }
+    fetchHistory();
+
+    const refreshTimer = window.setInterval(() => {
+      fetchHistory();
+    }, 60 * 1000);
+
+    const handleFocus = () => {
+      fetchHistory();
     };
 
-    fetchHistory();
-  }, []);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.clearInterval(refreshTimer);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchHistory]);
 
   const chartOptions = {
     responsive: true,
@@ -148,11 +166,32 @@ export default function History() {
 
   return (
     <div className="container">
-      <section className="card" style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <section className="card" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+            {lastUpdated ? `마지막 갱신: ${lastUpdated}` : '아직 갱신 전입니다.'}
+          </div>
+          <button
+            type="button"
+            onClick={fetchHistory}
+            style={{
+              border: '1px solid rgba(148, 163, 184, 0.35)',
+              background: 'rgba(15, 23, 42, 0.75)',
+              color: '#f8fafc',
+              borderRadius: '999px',
+              padding: '0.55rem 1rem',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+            }}
+          >
+            {loading ? '새로고침 중...' : '지금 새로고침'}
+          </button>
+        </div>
+
         {loading ? (
-          <p>데이터를 불러오는 중입니다...</p>
+          <p style={{ textAlign: 'center' }}>데이터를 불러오는 중입니다...</p>
         ) : historyData.length === 0 ? (
-          <p>아직 수집된 시세 변동 데이터가 없습니다. 내일 다시 확인해주세요!</p>
+          <p style={{ textAlign: 'center' }}>아직 수집된 시세 변동 데이터가 없습니다. 내일 다시 확인해주세요!</p>
         ) : (
           <div style={{ width: '100%', height: '400px' }}>
             <Line options={chartOptions} data={chartData} />
@@ -163,7 +202,6 @@ export default function History() {
       <div style={{ textAlign: 'center', marginTop: '1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
         상단의 범례(상품권 이름)를 클릭하면 그래프를 껐다 켤 수 있습니다.
       </div>
-
 
     </div>
   );
