@@ -29,15 +29,27 @@ const GIFT_CARD_NAMES = {
   hyundai: '현대 상품권'
 };
 
+const RANGE_OPTIONS = [
+  { value: '30d', label: '30일' },
+  { value: '60d', label: '60일' },
+  { value: '90d', label: '90일' },
+  { value: '180d', label: '180일' },
+  { value: '365d', label: '1년' },
+  { value: 'all', label: '전체' },
+] as const;
+
+type RangeValue = typeof RANGE_OPTIONS[number]['value'];
+
 export default function History() {
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [selectedRange, setSelectedRange] = useState<RangeValue>('30d');
 
   const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/history?type=all&days=30&t=${Date.now()}`, {
+      const res = await fetch(`/api/history?type=all&range=${selectedRange}&t=${Date.now()}`, {
         cache: 'no-store',
       });
       const data = await res.json();
@@ -50,7 +62,7 @@ export default function History() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedRange]);
 
   useEffect(() => {
     fetchHistory();
@@ -92,7 +104,7 @@ export default function History() {
       },
       title: {
         display: true,
-        text: `30일 시세 변동`,
+        text: `${RANGE_OPTIONS.find(option => option.value === selectedRange)?.label ?? '30일'} 시세 변동`,
         color: '#f8fafc'
       },
       tooltip: {
@@ -186,6 +198,31 @@ export default function History() {
           >
             {loading ? '새로고침 중...' : '지금 새로고침'}
           </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {RANGE_OPTIONS.map(option => {
+            const active = selectedRange === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSelectedRange(option.value)}
+                style={{
+                  border: 'none',
+                  borderBottom: active ? '2px solid #f8fafc' : '2px solid transparent',
+                  background: 'transparent',
+                  color: active ? '#f8fafc' : '#94a3b8',
+                  padding: '0.4rem 0.15rem',
+                  cursor: 'pointer',
+                  fontSize: '0.92rem',
+                  fontWeight: active ? 700 : 500,
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
 
         {loading ? (
