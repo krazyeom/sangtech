@@ -32,11 +32,14 @@ export const isInvalidPrice = (price: number) => INVALID_PRICES.has(price);
 
 export const extractPriceCandidates = (text: string): PriceCandidate[] => {
   const candidates: PriceCandidate[] = [];
-  const regex = /([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)\s*(이체\/현금|이체|현금|송금|계좌이체|remittance|transfer)?/g;
+  // Some editors split a number across inline elements, e.g. "96.60 0원".
+  // Remove only whitespace between digits so that it becomes "96.600원".
+  const normalizedText = text.replace(/(\d)\s+(?=\d)/g, '$1');
+  const regex = /([\d,.]+)\s*원?\s*\(([\d.]+)\s*%\)\s*(이체\/현금|이체|현금|송금|계좌이체|remittance|transfer)?/g;
 
   let match: RegExpExecArray | null;
-  while ((match = regex.exec(text)) !== null) {
-    const price = parseInt(match[1].replace(/,/g, ''), 10);
+  while ((match = regex.exec(normalizedText)) !== null) {
+    const price = parseInt(match[1].replace(/[,.]/g, ''), 10);
     if (isInvalidPrice(price)) continue;
 
     candidates.push({
@@ -47,7 +50,7 @@ export const extractPriceCandidates = (text: string): PriceCandidate[] => {
   }
 
   if (candidates.length === 0) {
-    const parsed = parsePriceText(text);
+    const parsed = parsePriceText(normalizedText);
     if (parsed && !isInvalidPrice(parsed.price)) {
       candidates.push({
         price: parsed.price,
@@ -92,10 +95,11 @@ export async function fetchHtml(url: string, encoding: string = 'utf-8') {
 
 export function parsePriceText(text: string): { price: number; rate: number } | null {
   // 예: "96,500원 (3.5%)" 또는 "96,500원(3.5%)" 또는 "96,900 원 (3.1%)"
-  const match = text.match(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/);
+  const normalizedText = text.replace(/(\d)\s+(?=\d)/g, '$1');
+  const match = normalizedText.match(/([\d,.]+)\s*원?\s*\(([\d.]+)\s*%\)/);
   if (match) {
     return {
-      price: parseInt(match[1].replace(/,/g, ''), 10),
+      price: parseInt(match[1].replace(/[,.]/g, ''), 10),
       rate: parseFloat(match[2]),
     };
   }
@@ -130,8 +134,8 @@ export async function crawlGeneric(
     const selector = options.selector || 'tr';
 
     const parseNums = (rowText: string) =>
-      Array.from(rowText.matchAll(/([\d,]+)\s*원?\s*\(([\d.]+)\s*%\)/g)).map((match) => ({
-        price: parseInt(match[1].replace(/,/g, ''), 10),
+      Array.from(rowText.replace(/(\d)\s+(?=\d)/g, '$1').matchAll(/([\d,.]+)\s*원?\s*\(([\d.]+)\s*%\)/g)).map((match) => ({
+        price: parseInt(match[1].replace(/[,.]/g, ''), 10),
         rate: parseFloat(match[2]),
       }));
 
