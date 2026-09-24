@@ -25,10 +25,11 @@ export default function ChuseokNotice() {
   };
 
   return (
-    <div role="presentation" onClick={closeToday} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', padding: '1rem', background: 'rgba(15, 23, 42, 0.68)' }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="chuseok-notice-title" onClick={(event) => event.stopPropagation()} style={{ width: 'min(100%, 460px)', padding: '1.5rem', borderRadius: '16px', background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #111827)', boxShadow: '0 20px 60px rgba(0,0,0,.3)' }}>
-        <h2 id="chuseok-notice-title" style={{ margin: '0 0 .8rem', fontSize: '1.2rem' }}>추석 연휴 안내</h2>
-        <p style={{ margin: '0 0 1.25rem', lineHeight: 1.7 }}>추석 연휴는 상품권 업체마다 휴무일이 다르니 꼭 가기전에 전화 통화등 연락을 하고 가세요.</p>
+    <div role="presentation" onClick={closeToday} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', padding: '20px', background: 'rgba(15, 23, 42, 0.78)' }}>
+      <section role="dialog" aria-modal="true" aria-labelledby="chuseok-notice-title" onClick={(event) => event.stopPropagation()} style={{ boxSizing: 'border-box', width: '100%', maxWidth: '390px', padding: '24px', border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', color: '#1f2937', boxShadow: '0 20px 60px rgba(0,0,0,.32)' }}>
+        <h2 id="chuseok-notice-title" style={{ margin: '0 0 .8rem', fontSize: '1.2rem', color: '#111827' }}>추석 연휴 안내</h2>
+        <p style={{ margin: '0 0 .75rem', lineHeight: 1.7 }}>추석 연휴에는 상품권 업체마다 휴무일이 다릅니다. 방문 전 반드시 전화 등으로 영업 여부를 확인해 주세요.</p>
+        <p style={{ margin: '0 0 1.25rem', lineHeight: 1.7, fontWeight: 700, color: '#334155' }}>즐겁고 풍성한 추석 보내세요!</p>
         <button type="button" onClick={closeToday} style={{ width: '100%', padding: '.75rem 1rem', border: 0, borderRadius: '9px', background: '#2563eb', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>오늘 하루 닫기</button>
       </section>
     </div>
