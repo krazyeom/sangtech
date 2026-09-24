@@ -7,7 +7,7 @@ type HolidayWindow = {
 
 // The reported 2026 Chuseok closure dates, interpreted in Korea time.
 const HOLIDAY_WINDOWS: HolidayWindow[] = [
-  { names: ['시티페이'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
+  { names: ['시티페이', '씨티상품권'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['우현'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['고고상품'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['드림상품권'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
