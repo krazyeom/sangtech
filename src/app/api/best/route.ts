@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import db, { hasSupabaseConfig } from '@/lib/db';
 import { isDreamVacationRankExcluded } from '@/lib/dream-vacation';
+import { isVendorHoliday } from '@/lib/vendor-holidays';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, best: null, allPrices: [] });
     }
 
-    const visiblePrices = allPrices.filter((p) => !isDreamVacationRankExcluded(p.site_name));
+    const visiblePrices = allPrices.filter((p) => !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name));
     const types = ['shinsegae', 'lotte', 'hyundai'];
     const absoluteMaxPrices: Record<string, number> = {};
     for (const t of types) {

@@ -1,6 +1,7 @@
 import './globals.css';
 import VisitorCounter from '@/components/VisitorCounter';
 import VisitTracker from '@/components/VisitTracker';
+import ChuseokNotice from '@/components/ChuseokNotice';
 
 export const metadata = {
   title: 'Sang Tech - 백화점 상품권 시세 비교',
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="ko">
       <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <VisitTracker />
+        <ChuseokNotice />
         <nav className="main-nav">
           <div className="nav-container">
             <a href="/" className="nav-logo">Sang Tech</a>

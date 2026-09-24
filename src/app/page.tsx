@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { isDreamVacationRankExcluded, shouldShowDreamVacationRow } from '@/lib/dream-vacation';
 import { getSiteRegion, hasSiteRegion } from '@/lib/site-order';
+import { getVendorHoliday, isVendorHoliday } from '@/lib/vendor-holidays';
 
 interface PriceData {
   id: number;
@@ -81,15 +82,15 @@ export default function Home() {
   }, []);
 
   const bestPrices = useMemo(() => ({
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name)).map(p => p.buy_price), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name)).map(p => p.buy_price), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name)).map(p => p.buy_price), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name)).map(p => p.buy_price), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name)).map(p => p.buy_price), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name)).map(p => p.buy_price), 0),
   }), [prices]);
 
   const sellBestPrices = useMemo(() => ({
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
+    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
+    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
+    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
   }), [prices]);
 
   const activeBestPrices = view === 'buy' ? bestPrices : sellBestPrices;
@@ -105,7 +106,7 @@ export default function Home() {
   const siteComparableSumPrice: Record<string, number> = {};
 
   prices.forEach(p => {
-    if (isExcludedCompareSite(p.site_name) || isDreamVacationRankExcluded(p.site_name)) return;
+    if (isExcludedCompareSite(p.site_name) || isDreamVacationRankExcluded(p.site_name) || isVendorHoliday(p.site_name)) return;
 
     const metric = view === 'buy' ? p.buy_price : (p.sell_price ?? 0);
     if (metric <= 0) return;
@@ -124,6 +125,10 @@ export default function Home() {
     const excludedA = isExcludedCompareSite(a);
     const excludedB = isExcludedCompareSite(b);
     if (excludedA !== excludedB) return excludedA ? 1 : -1;
+
+    const holidayA = isVendorHoliday(a);
+    const holidayB = isVendorHoliday(b);
+    if (holidayA !== holidayB) return holidayA ? 1 : -1;
 
     const regionA = getSiteRegion(a);
     const regionB = getSiteRegion(b);
@@ -161,7 +166,7 @@ export default function Home() {
     siteNames.push('베스트상품권');
   }
 
-  const comparisonSiteCount = siteNames.filter((site) => site !== '베스트상품권' && !isExcludedCompareSite(site)).length;
+  const comparisonSiteCount = siteNames.filter((site) => site !== '베스트상품권' && !isExcludedCompareSite(site) && !isVendorHoliday(site)).length;
 
   if (loading) {
     return <div className="container" style={{ textAlign: 'center', paddingTop: '100px' }}>Loading...</div>;
@@ -180,7 +185,7 @@ export default function Home() {
     <div className="container">
       <section className="best-cards">
         {(Object.keys(GIFT_CARD_NAMES) as Array<keyof typeof GIFT_CARD_NAMES>).map(type => {
-          const typePrices = prices.filter(p => p.gift_card_type === type && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name));
+          const typePrices = prices.filter(p => p.gift_card_type === type && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name));
           if (typePrices.length === 0) return null;
           
           const activeBest = typePrices.reduce((prev, curr) => {
@@ -299,6 +304,7 @@ export default function Home() {
           </thead>
           <tbody>
             {siteNames.map(site => {
+              const holiday = getVendorHoliday(site);
               const url = site === '베스트상품권'
                 ? 'https://bestgiftcard.kr/'
                 : site === '드림상품권'
@@ -324,14 +330,14 @@ export default function Home() {
                       rel="noreferrer" 
                       className={`site-link ${siteBestCount[site] ? `best-count-${siteBestCount[site]}` : ''}`}
                     >
-                      {site}
+                      {site}{holiday ? <span style={{ marginLeft: '0.35rem', color: '#ef4444', fontSize: '0.82em', fontWeight: 700 }}>휴무 {holiday.label}</span> : null}
                     </a>
                   </td>
                   {(['lotte', 'shinsegae', 'hyundai'] as const).map(type => {
                     const priceData = siteDataMap[site][type];
-                    const value = view === 'buy' ? priceData?.buy_price : priceData?.sell_price ?? null;
+                    const value = holiday ? null : view === 'buy' ? priceData?.buy_price : priceData?.sell_price ?? null;
                     const rate = view === 'buy' ? priceData?.buy_rate : priceData?.sell_rate ?? null;
-                    const isBest = value !== null && value === activeBestPrices[type];
+                    const isBest = !holiday && value !== null && value === activeBestPrices[type];
                     
                     return (
                       <td key={type} className={isBest ? 'highlight price-cell' : 'price-cell'}>
