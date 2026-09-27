@@ -72,16 +72,20 @@ function readFromFile(): PopupSettings {
 }
 
 /**
- * 로컬 파일 시스템에 설정 쓰기
+ * 로컬 파일 시스템에 설정 쓰기 (Vercel Serverless 환경에서는 Read-only이므로 예외 무시)
  */
 function writeToFile(settings: PopupSettings): void {
   try {
+    // Vercel 서버리스 람다 환경에서는 /var/task가 read-only임
+    if (process.env.VERCEL) {
+      return;
+    }
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     fs.writeFileSync(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2), 'utf-8');
   } catch (err) {
-    console.error('[PopupStore] Error writing to file:', err);
+    // 파일 시스템 쓰기 실패 시 조용히 무시 (Supabase가 우선 관리)
   }
 }
 

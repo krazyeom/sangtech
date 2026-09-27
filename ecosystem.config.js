@@ -1,6 +1,7 @@
 module.exports = {
   apps: [{
     name: 'deptgift',
+    interpreter: '/home/krazyeom/.nvm/versions/node/v20.19.6/bin/node',
     script: 'npm',
     args: 'run start',
     instances: 1,
@@ -14,6 +15,7 @@ module.exports = {
   },
   {
     name: 'local-crawler',
+    interpreter: '/home/krazyeom/.nvm/versions/node/v20.19.6/bin/node',
     script: 'npx',
     args: 'tsx src/scripts/local-crawler.ts',
     instances: 1,
