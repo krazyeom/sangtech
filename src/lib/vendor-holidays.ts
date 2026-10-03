@@ -2,12 +2,13 @@ type HolidayWindow = {
   names: string[];
   start: string;
   end: string;
+  endsAt?: string;
   label: string;
 };
 
 // Reported vendor closures, interpreted in Korea time.
 const HOLIDAY_WINDOWS: HolidayWindow[] = [
-  { names: ['하이티켓'], start: '2026-10-03', end: '2026-10-03', label: '10/3' },
+  { names: ['하이티켓'], start: '2026-10-03', end: '2026-10-05', endsAt: '2026-10-05T07:00:00+09:00', label: '10/3~10/5 07:00' },
   { names: ['시티페이', '씨티상품권'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['우현'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['고고상품'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
@@ -26,7 +27,9 @@ function koreaDateKey(date: Date): string {
 export function getVendorHoliday(siteName: string, date = new Date()): HolidayWindow | null {
   const today = koreaDateKey(date);
   return HOLIDAY_WINDOWS.find((window) =>
-    window.names.some((name) => siteName.includes(name)) && today >= window.start && today <= window.end
+    window.names.some((name) => siteName.includes(name)) &&
+    today >= window.start && today <= window.end &&
+    (!window.endsAt || date.getTime() < new Date(window.endsAt).getTime())
   ) ?? null;
 }
 
