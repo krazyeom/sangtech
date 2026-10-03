@@ -5,8 +5,9 @@ type HolidayWindow = {
   label: string;
 };
 
-// The reported 2026 Chuseok closure dates, interpreted in Korea time.
+// Reported vendor closures, interpreted in Korea time.
 const HOLIDAY_WINDOWS: HolidayWindow[] = [
+  { names: ['하이티켓'], start: '2026-10-03', end: '2026-10-03', label: '10/3' },
   { names: ['시티페이', '씨티상품권'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['우현'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
   { names: ['고고상품'], start: '2026-09-24', end: '2026-09-27', label: '9/24~9/27' },
@@ -31,4 +32,8 @@ export function getVendorHoliday(siteName: string, date = new Date()): HolidayWi
 
 export function isVendorHoliday(siteName: string, date = new Date()): boolean {
   return getVendorHoliday(siteName, date) !== null;
+}
+
+export function withoutVendorHolidays<T extends { site_name: string }>(prices: T[], date = new Date()): T[] {
+  return prices.filter((price) => !isVendorHoliday(price.site_name, date));
 }

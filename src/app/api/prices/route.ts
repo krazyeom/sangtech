@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import db, { hasSupabaseConfig } from '@/lib/db';
+import { withoutVendorHolidays } from '@/lib/vendor-holidays';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       lastCrawledAt,
-      prices: prices || []
+      prices: withoutVendorHolidays(prices || [])
     });
   } catch (error) {
     console.error('Failed to fetch prices API:', error);
