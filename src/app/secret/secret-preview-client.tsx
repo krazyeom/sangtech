@@ -82,11 +82,20 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
     hyundai: Math.max(...prices.filter((p) => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name)).map((p) => p.buy_price), 0),
   }), [prices]);
 
-  const sellBestPrices = useMemo(() => ({
-    shinsegae: Math.max(...prices.filter((p) => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number').map((p) => p.sell_price as number), 0),
-    lotte: Math.max(...prices.filter((p) => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number').map((p) => p.sell_price as number), 0),
-    hyundai: Math.max(...prices.filter((p) => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number').map((p) => p.sell_price as number), 0),
-  }), [prices]);
+  const sellBestPrices = useMemo(() => {
+    const getMinSellPrice = (type: 'shinsegae' | 'lotte' | 'hyundai') => {
+      const valid = prices
+        .filter((p) => p.gift_card_type === type && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && typeof p.sell_price === 'number' && p.sell_price > 0)
+        .map((p) => p.sell_price as number);
+      return valid.length > 0 ? Math.min(...valid) : 0;
+    };
+
+    return {
+      shinsegae: getMinSellPrice('shinsegae'),
+      lotte: getMinSellPrice('lotte'),
+      hyundai: getMinSellPrice('hyundai'),
+    };
+  }, [prices]);
 
   const bestPrices = view === 'buy' ? buyBestPrices : sellBestPrices;
 
@@ -94,14 +103,18 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
     const names = Array.from(new Set(prices.map((p) => p.site_name)));
     const siteBestCount: Record<string, number> = {};
     const siteComparableSumPrice: Record<string, number> = {};
+    const siteComparableCount: Record<string, number> = {};
 
     prices.forEach((p) => {
       if (isExcludedCompareSite(p.site_name) || isDreamVacationRankExcluded(p.site_name)) return;
       const metric = view === 'buy' ? p.buy_price : (p.sell_price ?? 0);
+      if (metric <= 0) return;
+
       siteComparableSumPrice[p.site_name] = (siteComparableSumPrice[p.site_name] || 0) + metric;
+      siteComparableCount[p.site_name] = (siteComparableCount[p.site_name] || 0) + 1;
 
       const type = p.gift_card_type as keyof typeof bestPrices;
-      if (metric > 0 && metric === bestPrices[type]) {
+      if (bestPrices[type] > 0 && metric === bestPrices[type]) {
         siteBestCount[p.site_name] = (siteBestCount[p.site_name] || 0) + 1;
       }
     });
@@ -129,7 +142,14 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
 
       const sumA = siteComparableSumPrice[a] || 0;
       const sumB = siteComparableSumPrice[b] || 0;
-      if (sumB !== sumA) return sumB - sumA;
+      if (view === 'buy') {
+        if (sumB !== sumA) return sumB - sumA;
+      } else {
+        const validA = siteComparableCount[a] || 0;
+        const validB = siteComparableCount[b] || 0;
+        if (validA !== validB) return validB - validA;
+        if (validA > 0 && sumA !== sumB) return sumA - sumB;
+      }
 
       return a.localeCompare(b, 'ko-KR');
     });
@@ -189,7 +209,7 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>{GIFT_CARD_NAMES[type]}</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{best > 0 ? `${best.toLocaleString()}원` : '-'}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                  {view === 'buy' ? '매입가 기준 최고가' : '판매가 데이터가 있는 경우만 표시'}
+                  {view === 'buy' ? '매입가 기준 최고가' : '판매가 기준 최저가'}
                 </div>
               </div>
             );
@@ -274,9 +294,9 @@ export default function SecretPricePreviewClient({ initialView }: SecretPreviewC
                   </td>
                   {(['lotte', 'shinsegae', 'hyundai'] as const).map((type) => {
                     const priceData = siteDataMap[site]?.[type];
-                    const value = view === 'buy' ? priceData?.buy_price : priceData?.sell_price ?? null;
-                    const rate = view === 'buy' ? priceData?.buy_rate : priceData?.sell_rate ?? null;
-                    const isBest = value !== null && value === bestPrices[type];
+                    const value = (view === 'buy' ? priceData?.buy_price : priceData?.sell_price) ?? null;
+                    const rate = (view === 'buy' ? priceData?.buy_rate : priceData?.sell_rate) ?? null;
+                    const isBest = value !== null && value > 0 && value === bestPrices[type];
 
                     return (
                       <td key={type} className={isBest ? 'highlight price-cell' : 'price-cell'}>

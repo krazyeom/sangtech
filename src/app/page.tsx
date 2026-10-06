@@ -87,11 +87,20 @@ export default function Home() {
     hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name)).map(p => p.buy_price), 0),
   }), [prices]);
 
-  const sellBestPrices = useMemo(() => ({
-    shinsegae: Math.max(...prices.filter(p => p.gift_card_type === 'shinsegae' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
-    lotte: Math.max(...prices.filter(p => p.gift_card_type === 'lotte' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
-    hyundai: Math.max(...prices.filter(p => p.gift_card_type === 'hyundai' && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number').map(p => p.sell_price as number), 0),
-  }), [prices]);
+  const sellBestPrices = useMemo(() => {
+    const getMinSellPrice = (type: 'shinsegae' | 'lotte' | 'hyundai') => {
+      const valid = prices
+        .filter(p => p.gift_card_type === type && !isExcludedCompareSite(p.site_name) && !isDreamVacationRankExcluded(p.site_name) && !isVendorHoliday(p.site_name) && typeof p.sell_price === 'number' && p.sell_price > 0)
+        .map(p => p.sell_price as number);
+      return valid.length > 0 ? Math.min(...valid) : 0;
+    };
+
+    return {
+      shinsegae: getMinSellPrice('shinsegae'),
+      lotte: getMinSellPrice('lotte'),
+      hyundai: getMinSellPrice('hyundai'),
+    };
+  }, [prices]);
 
   const activeBestPrices = view === 'buy' ? bestPrices : sellBestPrices;
 
@@ -104,6 +113,7 @@ export default function Home() {
   // 각 사이트별로 전체 상품권 중 베스트 가격을 몇 개나 가지고 있는지 카운트, 그리고 3종류 총합 계산
   const siteBestCount: Record<string, number> = {};
   const siteComparableSumPrice: Record<string, number> = {};
+  const siteComparableCount: Record<string, number> = {};
 
   prices.forEach(p => {
     if (isExcludedCompareSite(p.site_name) || isDreamVacationRankExcluded(p.site_name) || isVendorHoliday(p.site_name)) return;
@@ -113,9 +123,10 @@ export default function Home() {
 
     // 비교 대상 업체만 총합과 베스트 카운트에 포함
     siteComparableSumPrice[p.site_name] = (siteComparableSumPrice[p.site_name] || 0) + metric;
+    siteComparableCount[p.site_name] = (siteComparableCount[p.site_name] || 0) + 1;
 
     const type = p.gift_card_type as keyof typeof activeBestPrices;
-    if (metric === activeBestPrices[type]) {
+    if (activeBestPrices[type] > 0 && metric === activeBestPrices[type]) {
       siteBestCount[p.site_name] = (siteBestCount[p.site_name] || 0) + 1;
     }
   });
@@ -143,7 +154,7 @@ export default function Home() {
     const dreamB = isDreamVacationRankExcluded(b);
     if (dreamA !== dreamB) return dreamA ? 1 : -1;
 
-    // 1순위: 최고가 보유 개수
+    // 1순위: 최고/최저 베스트 가격 보유 개수
     const countA = siteBestCount[a] || 0;
     const countB = siteBestCount[b] || 0;
     if (countB !== countA) return countB - countA;
@@ -152,10 +163,17 @@ export default function Home() {
     if (a === '하이티켓') return -1;
     if (b === '하이티켓') return 1;
 
-    // 3순위: 전체 상품권 매입가 합계
+    // 3순위: 전체 상품권 합계 (매입가는 높을수록 고객 유리, 판매가는 데이터 있는 업체 우선 및 낮을수록 고객 유리)
     const sumA = siteComparableSumPrice[a] || 0;
     const sumB = siteComparableSumPrice[b] || 0;
-    if (sumB !== sumA) return sumB - sumA;
+    if (view === 'buy') {
+      if (sumB !== sumA) return sumB - sumA;
+    } else {
+      const validA = siteComparableCount[a] || 0;
+      const validB = siteComparableCount[b] || 0;
+      if (validA !== validB) return validB - validA;
+      if (validA > 0 && sumA !== sumB) return sumA - sumB;
+    }
     
     // 4순위: 이름순
     return a.localeCompare(b, 'ko-KR');
@@ -189,23 +207,44 @@ export default function Home() {
           if (typePrices.length === 0) return null;
           
           const activeBest = typePrices.reduce((prev, curr) => {
-            const prevMetric = view === 'buy' ? prev.buy_price : (prev.sell_price ?? 0);
-            const currMetric = view === 'buy' ? curr.buy_price : (curr.sell_price ?? 0);
-            if (currMetric > prevMetric) return curr;
-            if (currMetric === prevMetric) {
-              if (curr.site_name === '하이티켓') return curr;
-              if (prev.site_name === '하이티켓') return prev;
+            if (view === 'buy') {
+              const prevMetric = prev.buy_price;
+              const currMetric = curr.buy_price;
+              if (currMetric > prevMetric) return curr;
+              if (currMetric === prevMetric) {
+                if (curr.site_name === '하이티켓') return curr;
+                if (prev.site_name === '하이티켓') return prev;
 
-              const pCount = siteBestCount[prev.site_name] || 0;
-              const cCount = siteBestCount[curr.site_name] || 0;
-              if (cCount > pCount) return curr;
-              if (cCount === pCount) {
-                const pSum = siteComparableSumPrice[prev.site_name] || 0;
-                const cSum = siteComparableSumPrice[curr.site_name] || 0;
-                if (cSum > pSum) return curr;
+                const pCount = siteBestCount[prev.site_name] || 0;
+                const cCount = siteBestCount[curr.site_name] || 0;
+                if (cCount > pCount) return curr;
+                if (cCount === pCount) {
+                  const pSum = siteComparableSumPrice[prev.site_name] || 0;
+                  const cSum = siteComparableSumPrice[curr.site_name] || 0;
+                  if (cSum > pSum) return curr;
+                }
               }
+              return prev;
+            } else {
+              const prevPrice = typeof prev.sell_price === 'number' && prev.sell_price > 0 ? prev.sell_price : Infinity;
+              const currPrice = typeof curr.sell_price === 'number' && curr.sell_price > 0 ? curr.sell_price : Infinity;
+
+              if (currPrice < prevPrice) return curr;
+              if (currPrice === prevPrice && currPrice !== Infinity) {
+                if (curr.site_name === '하이티켓') return curr;
+                if (prev.site_name === '하이티켓') return prev;
+
+                const pCount = siteBestCount[prev.site_name] || 0;
+                const cCount = siteBestCount[curr.site_name] || 0;
+                if (cCount > pCount) return curr;
+                if (cCount === pCount) {
+                  const pSum = siteComparableSumPrice[prev.site_name] || 0;
+                  const cSum = siteComparableSumPrice[curr.site_name] || 0;
+                  if (cSum > 0 && (pSum === 0 || cSum < pSum)) return curr;
+                }
+              }
+              return prev;
             }
-            return prev;
           });
 
           return (
@@ -220,8 +259,8 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <div className="best-price">{typeof activeBest.sell_price === 'number' ? activeBest.sell_price.toLocaleString() : '-'}원</div>
-                      <div style={{ color: 'var(--text-secondary)' }}>판매가 기준 최고가{typeof activeBest.sell_rate === 'number' ? ` · ${activeBest.sell_rate}%` : ''}</div>
+                      <div className="best-price">{typeof activeBest.sell_price === 'number' && activeBest.sell_price > 0 ? `${activeBest.sell_price.toLocaleString()}원` : '-'}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{typeof activeBest.sell_rate === 'number' ? `${activeBest.sell_rate}% 할인율` : '판매가 기준 최저가'}</div>
                     </>
                   )}
                 </div>
@@ -337,7 +376,7 @@ export default function Home() {
                     const priceData = siteDataMap[site][type];
                     const value = holiday ? null : view === 'buy' ? priceData?.buy_price : priceData?.sell_price ?? null;
                     const rate = view === 'buy' ? priceData?.buy_rate : priceData?.sell_rate ?? null;
-                    const isBest = !holiday && value !== null && value === activeBestPrices[type];
+                    const isBest = !holiday && value !== null && value > 0 && value === activeBestPrices[type];
                     
                     return (
                       <td key={type} className={isBest ? 'highlight price-cell' : 'price-cell'}>
