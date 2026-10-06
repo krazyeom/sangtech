@@ -7,7 +7,7 @@ type SecretPageProps = {
 };
 
 export default function SecretPage({ searchParams }: SecretPageProps) {
-  const initialView = searchParams?.view === 'sell' ? 'sell' : 'buy';
+  const initialView = searchParams?.view === 'sell' ? 'sell' : searchParams?.view === 'both' ? 'both' : 'buy';
 
   return <SecretPricePreviewClient initialView={initialView} />;
 }
